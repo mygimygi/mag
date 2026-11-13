@@ -1,0 +1,1 @@
+{ "name": "MAGNET POP : 전자석 대작전", "short_name": "MAGNET POP", "start_url": "index.html", "display": "fullscreen", "orientation": "landscape", "background_color": "#2f86ea", "theme_color": "#2f86ea", "icons": [{ "src": "assets/img/icon.png", "sizes": "512x512", "type": "image/png" }] }
