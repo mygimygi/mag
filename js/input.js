@@ -17,7 +17,7 @@
   });
   addEventListener('keyup', e => { const a = map[e.code]; if (a) set('key', a, false); });
   addEventListener('blur', () => { src.key = {}; src.touch = {}; src.pad = {}; refresh(); });
-  I.releaseAll = () => { src.key = {}; src.touch = {}; src.pad = {}; refresh(); document.querySelectorAll('#touch .on, #touch .pl, #touch .pr, #touch .pj').forEach(el => el.classList.remove('on', 'pl', 'pr', 'pj')); };
+  I.releaseAll = () => { src.key = {}; src.touch = {}; src.pad = {}; I.padUp = false; refresh(); document.querySelectorAll('#touch .on, #touch .pl, #touch .pr, #touch .pj').forEach(el => el.classList.remove('on', 'pl', 'pr', 'pj')); };
   // Buttons: each element with data-act. Pointer capture lets every finger work independently (multi-touch).
   I.bindTouch = root => {
     root.querySelectorAll('[data-act]').forEach(el => {
@@ -37,11 +37,11 @@
         const h = Math.abs(dx) > dead && Math.abs(dx) > Math.abs(dy) * 0.41, v = Math.abs(dy) > dead && Math.abs(dy) > Math.abs(dx) * 0.41;
         const L = h && dx < 0, Rt = h && dx > 0, U = v && dy < 0, D = v && dy > 0;
         set('touch', 'left', L); set('touch', 'right', Rt); set('pad', 'down', D); set('pad', 'jump', U || D);      // down + jump = drop through
-        el.classList.toggle('pl', L); el.classList.toggle('pr', Rt); el.classList.toggle('pj', U);
+        I.padUp = U; el.classList.toggle('pl', L); el.classList.toggle('pr', Rt); el.classList.toggle('pj', U);
       };
       const dn = e => { e.preventDefault(); if (id !== null) return; id = e.pointerId; try { el.setPointerCapture(id); } catch (_) {} apply(e); };
       const mv = e => { if (e.pointerId === id) { e.preventDefault(); apply(e); } };
-      const up = e => { if (e.pointerId !== id) return; e.preventDefault(); id = null; knob.style.transform = ''; set('touch', 'left', false); set('touch', 'right', false); set('pad', 'jump', false); set('pad', 'down', false); el.classList.remove('pl', 'pr', 'pj'); };
+      const up = e => { if (e.pointerId !== id) return; e.preventDefault(); id = null; I.padUp = false; knob.style.transform = ''; set('touch', 'left', false); set('touch', 'right', false); set('pad', 'jump', false); set('pad', 'down', false); el.classList.remove('pl', 'pr', 'pj'); };
       el.addEventListener('pointerdown', dn); el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('lostpointercapture', up);
       el.addEventListener('contextmenu', e => e.preventDefault());
     });

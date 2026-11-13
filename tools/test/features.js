@@ -198,6 +198,8 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   await evp('pointermove', 21, upPt); await p.waitForTimeout(140);
   const padJump = await G(() => ({ jump: MP.Input.jump, left: MP.Input.left, air: !MP.game.player.onGround, hi: document.querySelector('[data-pad]').classList.contains('pj') }));
   ok('pushing the thumb up on the move pad jumps while still moving', padJump.jump && padJump.left && padJump.air && padJump.hi, padJump);
+  const hops = await G(() => { MP.App.paused = true; const g = MP.game, pl = g.player; let n = 0, prev = pl.vy; for (let i = 0; i < 120 * 3; i++) { pl.inv = 30; g.update(MP.DT); if (pl.vy < -500 && prev >= 0) n++; prev = pl.vy; } MP.App.paused = false; return n; });
+  ok('holding the joystick up keeps jumping: a new jump starts each time the hero lands', hops >= 2, hops);
   await evp('pointermove', 21, pl2); await p.waitForTimeout(900);
   const padDown = await G(() => ({ jump: MP.Input.jump, ground: MP.game.player.onGround, left: MP.Input.left }));
   await evp('pointermove', 21, upPt); await p.waitForTimeout(140);
