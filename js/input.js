@@ -6,7 +6,7 @@
   const I = MP.Input = { left: false, right: false, down: false, jump: false, magnet: false, jumpEdge: false, pauseEdge: false, touch: MP.coarse };
   if (MP.coarse) document.body.classList.add('touch');
   const map = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowDown: 'down', KeyS: 'down', Space: 'jump', ArrowUp: 'jump', KeyW: 'jump', KeyZ: 'magnet', KeyJ: 'magnet' };
-  const src = { key: {}, touch: {}, pad: {} };       // pad = the move pad's push-up jump, kept apart from the JUMP button
+  const src = { key: {}, touch: {}, pad: {} };       // pad = the move pad's push-up jump
   function refresh() { for (const a of ['left', 'right', 'down', 'jump', 'magnet']) I[a] = !!(src.key[a] || src.touch[a] || src.pad[a]); }
   function set(kind, a, v) { if (v && !src[kind][a] && a === 'jump') I.jumpEdge = true; src[kind][a] = v; refresh(); }
   addEventListener('keydown', e => {
@@ -30,15 +30,17 @@
     // Move pad: one zone for left / right. The thumb can slide across the middle to change direction without lifting.
     root.querySelectorAll('[data-pad]').forEach(el => {
       let id = null, baseY = 0, peakY = 0, jumping = false;
-      const th = () => (el.firstElementChild ? el.firstElementChild.clientHeight : 80) * 0.42;      // how far "up" counts as a jump
-      const dir = e => { const r = el.clientWidth, x = e.offsetX; const d = x < r / 2 ? 'left' : 'right'; set('touch', 'left', d === 'left'); set('touch', 'right', d === 'right'); el.classList.toggle('pl', d === 'left'); el.classList.toggle('pr', d === 'right'); };
+      // finger position inside the pad, measured from the screen position so it does not depend on offsetX/offsetY support
+      const pos = e => { const r = el.getBoundingClientRect(), rot = MP.App && MP.App.rotated; return rot ? { x: e.clientY - r.top, y: r.right - e.clientX, w: r.height } : { x: e.clientX - r.left, y: e.clientY - r.top, w: r.width }; };
+      const th = () => { const v = el.firstElementChild, r = v ? v.getBoundingClientRect() : null, h = r ? (MP.App && MP.App.rotated ? r.width : r.height) : 80; return h * 0.38; };      // how far "up" counts as a jump
+      const dir = e => { const q = pos(e), d = q.x < q.w / 2 ? 'left' : 'right'; set('touch', 'left', d === 'left'); set('touch', 'right', d === 'right'); el.classList.toggle('pl', d === 'left'); el.classList.toggle('pr', d === 'right'); };
       // Pushing the thumb up from wherever it rests jumps; easing back down ends the jump so the next push up jumps again.
       const lift = e => {
-        const y = e.offsetY;
+        const y = pos(e).y;
         if (!jumping) { baseY = Math.max(baseY, y); if (baseY - y > th()) { jumping = true; peakY = y; set('pad', 'jump', true); el.classList.add('pj'); } }
         else { peakY = Math.min(peakY, y); if (y - peakY > th() * 0.45) { jumping = false; baseY = y; set('pad', 'jump', false); el.classList.remove('pj'); } }
       };
-      const dn = e => { e.preventDefault(); if (id !== null) return; id = e.pointerId; try { el.setPointerCapture(id); } catch (_) {} baseY = e.offsetY; jumping = false; dir(e); };
+      const dn = e => { e.preventDefault(); if (id !== null) return; id = e.pointerId; try { el.setPointerCapture(id); } catch (_) {} baseY = pos(e).y; jumping = false; dir(e); };
       const mv = e => { if (e.pointerId === id) { e.preventDefault(); dir(e); lift(e); } };
       const up = e => { if (e.pointerId !== id) return; e.preventDefault(); id = null; jumping = false; set('touch', 'left', false); set('touch', 'right', false); set('pad', 'jump', false); el.classList.remove('pl', 'pr', 'pj'); };
       el.addEventListener('pointerdown', dn); el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('lostpointercapture', up);

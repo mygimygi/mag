@@ -7,7 +7,7 @@
     // core = menu + hero + platforms; each stage adds its own background and monster sheets when it starts.
     core() { const l = ['hero', 'weapon', 'parts', 'fx', 'bg1', 'm_ball', 'm_robot', 'm_slime', 'm_bug', 'm_bat']; ['meadow', 'factory', 'compass', 'lab', 'fortress'].forEach(k => l.push('plat_' + k, 'ground_' + k)); ['cloud', 'spring', 'conveyor', 'wood'].forEach(k => l.push('plat_' + k)); return l; },
     all() { return [...new Set(this.core().concat(['king', 'titan'], Object.keys(SPR.mon.types).map(t => 'm_' + t), Array.from({ length: 16 }, (_, i) => 'bg' + (i + 1))))]; },
-    src(n) { return 'assets/img/' + n + (n.startsWith('bg') ? '.jpg' : '.png'); },
+    src(n) { return 'assets/img/' + n + (n.startsWith('bg') ? '.jpg' : '.png') + (window.__ARTIFACT__ ? '' : '?v=' + MP.VERSION); },
     ok(n) { const i = IMG[n]; return !!i && (i.naturalWidth || i.width) > 0; },
     ready(names) { return names.every(n => this.ok(n)); },
     // load whatever is missing; resolves with the names that failed
@@ -325,6 +325,7 @@
     let x = W / 2 - tw / 2;
     [...word].forEach((ch, i) => { const y = 150 + Math.sin(t * 2.2 + i * 0.6) * 6, cx = x + ws[i] / 2; if (ch !== ' ') { c.font = size + 'px ' + FONT; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round'; c.lineWidth = 30; c.strokeStyle = '#16204a'; c.strokeText(ch, cx, y + 6); c.lineWidth = 16; c.strokeStyle = '#fff'; c.strokeText(ch, cx, y); const gr = c.createLinearGradient(0, y - 60, 0, y + 60); if (i < 6) { gr.addColorStop(0, '#ff8f8f'); gr.addColorStop(1, '#e0203a'); } else { gr.addColorStop(0, '#7fc4ff'); gr.addColorStop(1, '#2a5fd6'); } c.fillStyle = gr; c.fillText(ch, cx, y); } x += ws[i]; });
     pill(c, W / 2 - 170, 228, 340, 54); text(c, '전자석 대작전', W / 2, 256, 34, '#ffd83d', '#0b1f5c', 7);
+    text(c, 'v' + MP.VERSION, W - 20, 22, 22, '#fff', '#173d96', 5, 'right');
   };
   // generic bright backdrop for sub screens
   R.drawBackdrop = function (n) { const c = ctx; c.setTransform(rs, 0, 0, rs, 0, 0); n = n || 1; if (!A.ok('bg' + n)) { if (!pending['bg' + n]) A.ensure(['bg' + n]).then(() => A.useBg(n)); c.drawImage(IMG.bg1, 0, 0, W, H); } else c.drawImage(IMG['bg' + n], 0, 0, W, H); c.drawImage(groundImg(MP.THEME[MP.STAGES[n || 1].world]), -32, G - 11, 1344, SPR.plat.groundH); c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(0, 0, W, H); };

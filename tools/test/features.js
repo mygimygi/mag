@@ -11,7 +11,7 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   const G = fn => p.evaluate(fn);
   await boot(); await G(() => { localStorage.clear(); MP.Save.reset(); });
   ok('main menu shown', await G(() => MP.UI.cur === 'menu' && MP.App.scene === 'menu'));
-  const lazy = await (async () => { const pg = await ctx.newPage(); const reqs = []; pg.on('request', r => { if (/assets\/img\//.test(r.url())) reqs.push(r.url().split('/').pop()); }); await pg.goto(URL); await pg.waitForFunction(() => window.MP && MP.ready, null, { timeout: 20000 }); const boot = reqs.length; const sync1 = await pg.evaluate(() => { MP.Save.data.unlocked = 16; MP.App.startStage(1); return MP.App.scene === 'game'; }); await pg.evaluate(() => MP.App.startStage(11)); const waiting = await pg.evaluate(() => MP.UI.cur); await pg.waitForFunction(() => MP.game.stage === 11 && MP.App.scene === 'game' && MP.UI.cur === null, null, { timeout: 15000 }); const r = { boot, total: await pg.evaluate(() => MP.Assets.all().length), sync1, waiting, golem: reqs.includes('m_golem.png'), bg11: reqs.includes('bg11.jpg'), titanLoaded: reqs.includes('titan.png') }; await pg.close(); return r; })();
+  const lazy = await (async () => { const pg = await ctx.newPage(); const reqs = []; pg.on('request', r => { if (/assets\/img\//.test(r.url())) reqs.push(r.url().split('/').pop().split('?')[0]); }); await pg.goto(URL); await pg.waitForFunction(() => window.MP && MP.ready, null, { timeout: 20000 }); const boot = reqs.length; const sync1 = await pg.evaluate(() => { MP.Save.data.unlocked = 16; MP.App.startStage(1); return MP.App.scene === 'game'; }); await pg.evaluate(() => MP.App.startStage(11)); const waiting = await pg.evaluate(() => MP.UI.cur); await pg.waitForFunction(() => MP.game.stage === 11 && MP.App.scene === 'game' && MP.UI.cur === null, null, { timeout: 15000 }); const r = { boot, total: await pg.evaluate(() => MP.Assets.all().length), sync1, waiting, golem: reqs.includes('m_golem.png'), bg11: reqs.includes('bg11.jpg'), titanLoaded: reqs.includes('titan.png') }; await pg.close(); return r; })();
   ok('only core images load at start; a stage loads its own images on demand', lazy.boot < lazy.total - 15 && lazy.sync1 && lazy.waiting === 'loading' && lazy.golem && lazy.bg11 && !lazy.titanLoaded, lazy);
   ok('stage 16 locked at start (cannot start)', await G(() => { MP.App.startStage(16); return MP.App.scene !== 'game'; }));
   await p.click('#menu [data-go=start]', { force: true });
@@ -176,13 +176,13 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   const centre = async sel => { const r = await p.locator(sel).boundingBox(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; };
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 640, y: 300, id: 9 }] }); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await p.waitForTimeout(150);
   ok('touch controls appear on a touch device', await G(() => document.body.classList.contains('touch') && !document.getElementById('touch').hidden && getComputedStyle(document.getElementById('touch')).display !== 'none'));
-  const padBox = await p.locator('[data-pad]').boundingBox(); const pr = { x: padBox.x + padBox.width * 0.75, y: padBox.y + padBox.height * 0.6 }, pl2 = { x: padBox.x + padBox.width * 0.25, y: padBox.y + padBox.height * 0.6 }, pj = await centre('[data-act=jump]'), pm = await centre('[data-act=magnet]');
+  const padBox = await p.locator('[data-pad]').boundingBox(); const pr = { x: padBox.x + padBox.width * 0.75, y: padBox.y + padBox.height * 0.6 }, pl2 = { x: padBox.x + padBox.width * 0.25, y: padBox.y + padBox.height * 0.6 }, pm = await centre('[data-act=magnet]');
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...pr, id: 1 }] });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...pr, id: 1 }, { ...pm, id: 2 }] });
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...pr, id: 1 }, { ...pm, id: 2 }, { ...pj, id: 3 }] });
-  await p.waitForTimeout(250);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: pr.x, y: pr.y - padBox.height * 0.6, id: 1 }, { ...pm, id: 2 }] });
+  await p.waitForTimeout(200);
   const multi = await G(() => ({ right: MP.Input.right, magnet: MP.Input.magnet, jump: MP.Input.jump, on: MP.game.player.magnet, air: !MP.game.player.onGround, vx: MP.game.player.vx }));
-  ok('multi-touch: move + magnet + jump held at the same time', multi.right && multi.magnet && multi.jump && multi.on && multi.air && multi.vx > 0, multi);
+  ok('multi-touch with two fingers: move + push-up jump on the pad while the magnet is held', multi.right && multi.magnet && multi.jump && multi.on && multi.air && multi.vx > 0, multi);
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await p.waitForTimeout(100);
   ok('all fingers up -> all inputs released', await G(() => !MP.Input.right && !MP.Input.jump && !MP.Input.magnet));
   // one finger lifted while another stays down (per-pointer events; CDP cannot lift a single touch point)
@@ -202,8 +202,8 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   const padDown = await G(() => ({ jump: MP.Input.jump, ground: MP.game.player.onGround, left: MP.Input.left }));
   await evp('pointermove', 21, upPt); await p.waitForTimeout(140);
   ok('easing the thumb back down ends the jump; pushing up again jumps again', !padDown.jump && padDown.left && padDown.ground && await G(() => MP.Input.jump && !MP.game.player.onGround), padDown);
-  await ev('[data-act=jump]', 'pointerdown', 23); await evp('pointermove', 21, pl2); await p.waitForTimeout(80);
-  ok('JUMP button still works on its own (not cancelled by the pad)', await G(() => MP.Input.jump)); await ev('[data-act=jump]', 'pointerup', 23);
+  ok('no JUMP button on touch devices (jump = push up on the pad); magnet button keeps its size', await G(() => !document.querySelector('[data-act=jump]') && document.querySelectorAll('#touch button').length === 1 && Math.abs(document.querySelector('.mag').getBoundingClientRect().width / parseFloat(getComputedStyle(document.getElementById('touch')).getPropertyValue('--tb')) - 1.2) < 0.03));
+  await evp('pointermove', 21, pl2); await p.waitForTimeout(80);
   await evp('pointerup', 21, pl2); await p.waitForTimeout(80);
   ok('second finger up releases movement', await G(() => !MP.Input.right && !MP.Input.left && !MP.Input.jump));
   // --- upgrades: exactly 3 levels each, order rule, MAX lock ---
@@ -236,6 +236,13 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   await p.waitForTimeout(4000); await ctx.setOffline(true);
   let offOK = false; try { await boot(); offOK = await G(() => MP.ready === true && Object.values(MP.Assets.img).every(i => (i.naturalWidth || i.width) > 0)); } catch (e) { offOK = false; }
   ok('runs with the network offline after first load (service worker cache)', offOK); await ctx.setOffline(false);
+  // --- a new release replaces what an installed (older) service worker had cached ---
+  const fresh = await (async () => { await boot(); await p.waitForFunction(() => navigator.serviceWorker.controller, null, { timeout: 15000 }).catch(() => {});
+    const r = await G(async () => { const keys = await caches.keys(); const urls = [...document.scripts].map(s2 => s2.getAttribute('src')).filter(Boolean); return { ver: MP.VERSION, keys, stamped: urls.every(u => u.includes('?v=' + MP.VERSION)), css: document.querySelector('link[rel=stylesheet]').getAttribute('href').includes('?v=' + MP.VERSION), img: MP.Assets.src('hero').includes('?v=' + MP.VERSION) }; });
+    // put a fake stale file into the cache: an online request must still return the real, current file (network first)
+    r.networkFirst = await G(async () => { const c = await caches.open((await caches.keys())[0]); await c.put(new URL('js/config.js', location.href).href, new Response('STALE', { headers: { 'content-type': 'text/javascript' } })); const t = await (await fetch('js/config.js?v=' + MP.VERSION)).text(); return !t.startsWith('STALE') && t.includes('MP.VERSION'); });
+    return r; })();
+  ok('file URLs carry the version; the service worker serves the newest files when online (cache is only the offline fallback)', fresh.ver >= 8 && fresh.keys.length === 1 && fresh.keys[0] === 'magnetpop-v' + fresh.ver && fresh.stamped && fresh.css && fresh.img && fresh.networkFirst, fresh);
   ok('no runtime errors during the whole session', errs.length === 0, errs.slice(0, 5));
   const fail = results.filter(r => !r.pass); console.log(`\n${results.length - fail.length}/${results.length} passed`);
   await b.close(); process.exit(fail.length ? 1 : 0);
