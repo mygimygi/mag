@@ -193,8 +193,19 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   ok('lifting only the magnet finger turns the current off, movement continues', await G(() => MP.Input.right && !MP.Input.magnet && !MP.game.player.magnet));
   await evp('pointermove', 21, pl2); await p.waitForTimeout(80);
   ok('sliding the thumb across the move pad switches direction without lifting', await G(() => MP.Input.left && !MP.Input.right));
+  // push the thumb up on the move pad = jump (and again after easing back down)
+  await G(() => { MP.game.player.inv = 30; MP.Input.jumpEdge = false; }); const upPt = { x: pl2.x, y: pl2.y - padBox.height * 0.6 };
+  await evp('pointermove', 21, upPt); await p.waitForTimeout(140);
+  const padJump = await G(() => ({ jump: MP.Input.jump, left: MP.Input.left, air: !MP.game.player.onGround, hi: document.querySelector('[data-pad]').classList.contains('pj') }));
+  ok('pushing the thumb up on the move pad jumps while still moving', padJump.jump && padJump.left && padJump.air && padJump.hi, padJump);
+  await evp('pointermove', 21, pl2); await p.waitForTimeout(900);
+  const padDown = await G(() => ({ jump: MP.Input.jump, ground: MP.game.player.onGround, left: MP.Input.left }));
+  await evp('pointermove', 21, upPt); await p.waitForTimeout(140);
+  ok('easing the thumb back down ends the jump; pushing up again jumps again', !padDown.jump && padDown.left && padDown.ground && await G(() => MP.Input.jump && !MP.game.player.onGround), padDown);
+  await ev('[data-act=jump]', 'pointerdown', 23); await evp('pointermove', 21, pl2); await p.waitForTimeout(80);
+  ok('JUMP button still works on its own (not cancelled by the pad)', await G(() => MP.Input.jump)); await ev('[data-act=jump]', 'pointerup', 23);
   await evp('pointerup', 21, pl2); await p.waitForTimeout(80);
-  ok('second finger up releases movement', await G(() => !MP.Input.right && !MP.Input.left));
+  ok('second finger up releases movement', await G(() => !MP.Input.right && !MP.Input.left && !MP.Input.jump));
   // --- upgrades: exactly 3 levels each, order rule, MAX lock ---
   const up = await G(() => { const S = MP.Save, d = S.data, log = []; d.mats = 99; log.push(S.canUpgrade('batt').reason); d.mats = 100; log.push(S.upgrade('batt'), d.batt, d.mats); d.mats = 500; log.push(S.canUpgrade('batt').reason); log.push(S.upgrade('coil'), S.upgrade('batt'), S.upgrade('coil'), d.batt, d.coil); log.push(S.canUpgrade('batt').reason, S.upgrade('batt'), S.upgrade('coil'), d.batt, d.coil, d.mats); return log; });
   ok('upgrade needs enough materials; costs are deducted', up[0] === 'mats' && up[1] === true && up[2] === 2 && up[3] === 0, up.slice(0, 4));

@@ -156,6 +156,10 @@ kbd { font: inherit; display: inline-block; min-width: 40px; text-align: center;
 .mp-vis span { flex: 1; display: flex; align-items: center; justify-content: center; }
 .mp-vis .hl { border-right: 2px solid rgba(255, 255, 255, .45); }
 .movepad.pl .hl, .movepad.pr .hr { background: rgba(255, 200, 60, .78); }
+/* small up arrow above the pad: push the thumb up to jump */
+.mp-up { position: absolute; left: 50%; top: 0; margin-left: calc(var(--tb) * -.14 - 3px); width: 0; height: 0; border: calc(var(--tb) * .14) solid transparent; border-top: 0; border-bottom: calc(var(--tb) * .17) solid rgba(255, 255, 255, .85); pointer-events: none; }
+.movepad.pj .mp-up { border-bottom-color: #ffc83d; transform: translateY(-4px) scale(1.25); }
+.movepad.pj .mp-vis { border-color: #ffc83d; }
 .arrow { width: 0; height: 0; border: calc(var(--tb) * .2) solid transparent; display: block; }
 .arrow.l { border-right: calc(var(--tb) * .3) solid #fff; margin-right: calc(var(--tb) * .2); } .arrow.r { border-left: calc(var(--tb) * .3) solid #fff; margin-left: calc(var(--tb) * .2); }
 #touch .pad.right { position: absolute; right: 14px; bottom: 14px; display: flex; gap: calc(var(--tb) * .16); align-items: flex-end; pointer-events: none; }

@@ -118,7 +118,7 @@
   // ---------- how to play ----------
   make('howto', '', `<button class="btn small back" data-b>◀ 메뉴</button><h1 class="title" style="position:absolute;top:16px">게임 방법</h1><div class="panel">
     <div class="cols"><div class="pc"><h3>PC 키보드</h3><ul><li><kbd>←</kbd><kbd>→</kbd> 또는 <kbd>A</kbd><kbd>D</kbd> 이동</li><li><kbd>SPACE</kbd> <kbd>W</kbd> <kbd>↑</kbd> 점프 &nbsp;(<kbd>↓</kbd>+점프: 아래로)</li><li><kbd>Z</kbd> 또는 <kbd>J</kbd> 꾹 누르기 : 전류 ON · 흡수</li><li><kbd>Z</kbd> 또는 <kbd>J</kbd> 놓기 : 전류 OFF · 발사</li><li><kbd>ESC</kbd> 일시정지</li></ul></div>
-    <div><h3>태블릿 터치</h3><ul><li>왼쪽 <kbd>◀</kbd><kbd>▶</kbd> 버튼 : 이동</li><li>오른쪽 <kbd>JUMP</kbd> 버튼 : 점프</li><li><kbd>전자석</kbd> 버튼 꾹 누르기 : 전류 ON · 흡수</li><li>버튼에서 손 떼기 : 전류 OFF · 발사</li><li>이동·점프·전자석을 동시에 누를 수 있어요</li></ul></div></div>
+    <div><h3>태블릿 터치</h3><ul><li>왼쪽 이동 패드 <kbd>◀</kbd><kbd>▶</kbd> : 좌우로 밀어 이동</li><li>이동 패드에서 위로 밀기 또는 <kbd>JUMP</kbd> 버튼 : 점프</li><li><kbd>전자석</kbd> 버튼 꾹 누르기 : 전류 ON · 흡수</li><li>버튼에서 손 떼기 : 전류 OFF · 발사</li><li>이동·점프·전자석을 동시에 누를 수 있어요</li></ul></div></div>
     <div class="rules">① 전자석을 켜서 <b style="color:#2a66d8">철 몬스터</b>를 끌어당겨 흡수해요. (한 번에 최대 ${MP.HOLD_MAX}마리)<br>② 전자석을 끄면 흡수한 몬스터가 발사돼요. 많이 모을수록 강력해요!<br>③ 모든 몬스터를 물리치면 스테이지 클리어! 강화 재료로 <b style="color:#e06a00">건전지</b>와 <b style="color:#e06a00">에나멜선</b>을 강화해요.<br>④ 몬스터에 닿으면 하트가 줄어들어요. 하트 ${MP.HEARTS}개를 모두 잃으면 게임 오버!</div></div>`);
   UI.howto = () => UI.show('howto');
   on(screens.howto, '[data-b]', () => UI.menu());
