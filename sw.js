@@ -1,5 +1,5 @@
 // MAGNET POP offline cache (used when the game is served over http/https; opening index.html directly also works offline)
-const CACHE = 'magnetpop-v4';
+const CACHE = 'magnetpop-v5';
 const FILES = ['./', 'index.html', 'css/style.css', 'manifest.webmanifest', 'assets/fonts/Jua-Regular.woff2',
   'js/sprites.js', 'js/heroart.js', 'js/config.js', 'js/save.js', 'js/input.js', 'js/audio.js', 'js/game.js', 'js/bosses.js', 'js/render.js', 'js/ui.js', 'js/main.js',
   'assets/img/icon.png', 'assets/img/hero.png', 'assets/img/weapon.png', 'assets/img/king.png', 'assets/img/titan.png', 'assets/img/parts.png', 'assets/img/fx.png']

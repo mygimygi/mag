@@ -136,53 +136,31 @@
     { deep: '235,10,30', bright: '255,246,170', cone: '255,90,50', name: '#f0202e' },
   ];
   R.TIER = TIER;
-  const hash = n => { const v = Math.sin(n * 127.1) * 43758.5453; return v - Math.floor(v); };
-  function bolt(c, x0, y0, x1, y1, seed, amp) {     // jagged lightning between two points
-    const n = 7; c.beginPath(); c.moveTo(x0, y0);
-    for (let i = 1; i < n; i++) { const k = i / n; c.lineTo(x0 + (x1 - x0) * k + (hash(seed + i * 3.7) - .5) * amp * 0.5, y0 + (y1 - y0) * k + (hash(seed + i * 9.1) - .5) * amp); }
-    c.lineTo(x1, y1);
-  }
+  // Magnetic field: a light cone plus rings travelling toward the pole. It stays see-through so the monsters remain visible;
+  // upgrades only change its colour slightly (blue -> violet -> warm) and add rings with the coil level.
+  const FIELD = [['40,140,250', '240,251,255', '150,225,255'], ['60,120,250', '236,244,255', '160,200,255'], ['140,90,245', '246,236,255', '200,170,255'], ['245,110,60', '255,243,214', '255,170,130'], ['240,70,50', '255,238,176', '255,140,90']];
   function drawField(c, g) {
     const pl = g.player; if (!pl.magnet) return; const nz = g.nozzle, f = pl.facing, range = g.range, t = g.time, big = g.buff.magnet > 0;
-    const tier = g.batt + g.coil - 2, T = TIER[tier], spread = d => (big ? 70 : 48) + d * (big ? 0.36 : 0.3);
-    c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
-    // cone showing the reach of the field: stronger tint with every upgrade
-    const grd = c.createLinearGradient(nz.x, 0, nz.x + f * range, 0); grd.addColorStop(0, 'rgba(' + T.cone + ',' + (0.42 + tier * 0.09) + ')'); grd.addColorStop(0.7, 'rgba(' + T.cone + ',' + (0.2 + tier * 0.06) + ')'); grd.addColorStop(1, 'rgba(' + T.cone + ',0)');
-    c.fillStyle = grd; c.beginPath(); c.moveTo(nz.x, nz.y - 22); c.lineTo(nz.x + f * range, nz.y - spread(range)); c.lineTo(nz.x + f * range, nz.y + spread(range)); c.lineTo(nz.x, nz.y + 22); c.closePath(); c.fill();
-    // bright core beam (grows with the tier)
-    const bh = 8 + tier * 7; const bg = c.createLinearGradient(nz.x, 0, nz.x + f * range * 0.9, 0); bg.addColorStop(0, 'rgba(' + T.bright + ',' + (0.75 + tier * 0.05) + ')'); bg.addColorStop(1, 'rgba(' + T.bright + ',0)');
-    c.fillStyle = bg; c.beginPath(); c.moveTo(nz.x, nz.y - bh); c.lineTo(nz.x + f * range * 0.9, nz.y - bh * 0.3); c.lineTo(nz.x + f * range * 0.9, nz.y + bh * 0.3); c.lineTo(nz.x, nz.y + bh); c.closePath(); c.fill();
-    // rings travelling toward the pole: more, thicker and darker-edged with every upgrade
-    const n = 6 + tier * 2 + (big ? 2 : 0);
+    const tier = g.batt + g.coil - 2, FC = FIELD[tier], sp = (big ? 70 : 48) + range * (big ? 0.36 : 0.3);
+    c.save();
+    const grd = c.createLinearGradient(nz.x, 0, nz.x + f * range, 0); grd.addColorStop(0, 'rgba(' + FC[2] + ',.26)'); grd.addColorStop(1, 'rgba(' + FC[2] + ',0)');
+    c.fillStyle = grd; c.beginPath(); c.moveTo(nz.x, nz.y - 20); c.lineTo(nz.x + f * range, nz.y - sp); c.lineTo(nz.x + f * range, nz.y + sp); c.lineTo(nz.x, nz.y + 20); c.closePath(); c.fill();
+    const n = 5 + g.coil + (big ? 1 : 0);
     for (let i = 0; i < n; i++) {
-      const ph = (t * (1.4 + tier * 0.15) + i / n) % 1, d = range * (1 - ph) + 8, a = Math.sin(ph * Math.PI);
+      const ph = (t * 1.5 + i / n) % 1, d = range * (1 - ph) + 8, a = Math.sin(ph * Math.PI);   // rings travel toward the pole
       const rx = 5 + d * 0.055, ry = (16 + d * 0.27) * (big ? 1.22 : 1);
       c.beginPath(); c.ellipse(nz.x + f * d, nz.y, rx, ry, 0, 0, Math.PI * 2);
-      c.lineWidth = 10 + tier * 3.2; c.strokeStyle = 'rgba(' + T.deep + ',' + (a * (0.55 + tier * 0.08)).toFixed(3) + ')'; c.stroke();
-      c.lineWidth = 3.4 + tier * 1.1; c.strokeStyle = 'rgba(' + T.bright + ',' + a.toFixed(3) + ')'; c.stroke();
-    }
-    // lightning: one bolt per upgrade tier, re-drawn about 16 times a second
-    const fl = Math.floor(t * 16);
-    for (let i = 0; i < tier; i++) {
-      const d = range * (0.55 + hash(fl * 1.3 + i * 17) * 0.4), y1 = nz.y + (hash(fl * 2.1 + i * 5) - .5) * 2 * spread(d) * 0.8;
-      bolt(c, nz.x + f * 6, nz.y + (i % 2 ? 10 : -10), nz.x + f * d, y1, fl * 7 + i * 31, 34 + tier * 6);
-      c.lineWidth = 8 + tier; c.strokeStyle = 'rgba(' + T.deep + ',.8)'; c.stroke(); c.lineWidth = 3; c.strokeStyle = 'rgba(' + T.bright + ',1)'; c.stroke();
-    }
-    // sparks pulled in along the field (tier 2 and up)
-    for (let i = 0; i < Math.max(0, tier - 1) * 4; i++) {
-      const ph = (t * 1.9 + i * 0.37) % 1, d = range * (1 - ph), y = nz.y + Math.sin(i * 12.9 + 1) * spread(d) * 0.75, r = (4 + tier) * (0.5 + ph * 0.7), x = nz.x + f * d;
-      c.beginPath(); c.moveTo(x, y - r); c.lineTo(x + r * .3, y - r * .3); c.lineTo(x + r, y); c.lineTo(x + r * .3, y + r * .3); c.lineTo(x, y + r); c.lineTo(x - r * .3, y + r * .3); c.lineTo(x - r, y); c.lineTo(x - r * .3, y - r * .3); c.closePath();
-      c.fillStyle = 'rgba(' + T.bright + ',' + (0.4 + ph * 0.6) + ')'; c.fill(); c.lineWidth = 2; c.strokeStyle = 'rgba(' + T.deep + ',' + (0.4 + ph * 0.6) + ')'; c.stroke();
+      c.lineWidth = 6.5; c.strokeStyle = 'rgba(' + FC[0] + ',' + (a * 0.5).toFixed(3) + ')'; c.stroke();        // thin coloured edge keeps the ring crisp
+      c.lineWidth = 2.6; c.strokeStyle = 'rgba(' + FC[1] + ',' + a.toFixed(3) + ')'; c.stroke();
     }
     c.restore();
   }
   // glow around an upgraded magnet, even when it is switched off (tier 1 and up)
   function drawAura(c, g) {
     const pl = g.player, tier = g.batt + g.coil - 2; if (tier < 1 || pl.dead) return;
-    const T = TIER[tier], x = pl.x + pl.facing * 78, y = pl.y - 46, pul = 0.75 + Math.sin(g.time * (5 + tier)) * 0.25, r = (34 + tier * 13) * (pl.magnet ? 1.35 : 1);
-    const gr = c.createRadialGradient(x, y, 4, x, y, r); gr.addColorStop(0, 'rgba(' + T.bright + ',' + (0.55 * pul).toFixed(2) + ')'); gr.addColorStop(0.45, 'rgba(' + T.cone + ',' + ((0.3 + tier * 0.07) * pul).toFixed(2) + ')'); gr.addColorStop(1, 'rgba(' + T.cone + ',0)');
+    const T = TIER[tier], x = pl.x + pl.facing * 78, y = pl.y - 46, pul = 0.8 + Math.sin(g.time * 5) * 0.2, r = 30 + tier * 6;
+    const gr = c.createRadialGradient(x, y, 4, x, y, r); gr.addColorStop(0, 'rgba(' + T.bright + ',' + (0.32 * pul).toFixed(2) + ')'); gr.addColorStop(0.5, 'rgba(' + T.cone + ',' + ((0.14 + tier * 0.03) * pul).toFixed(2) + ')'); gr.addColorStop(1, 'rgba(' + T.cone + ',0)');
     c.fillStyle = gr; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
-    if (tier >= 3) { const fl = Math.floor(g.time * 14); c.save(); c.lineCap = 'round'; c.lineJoin = 'round'; for (let i = 0; i < tier - 2; i++) { const a = hash(fl + i * 7) * 6.28; bolt(c, x, y, x + Math.cos(a) * r * 0.8, y + Math.sin(a) * r * 0.6, fl * 3 + i, 18); c.lineWidth = 5; c.strokeStyle = 'rgba(' + T.deep + ',.75)'; c.stroke(); c.lineWidth = 2; c.strokeStyle = 'rgba(' + T.bright + ',1)'; c.stroke(); } c.restore(); }
   }
   function drawHazard(c, h, g) {
     if (h.kind === 'scrap') { fx(c, 'scrap', h.x, h.y, { rot: h.rot, s: 0.8 }); return; }
