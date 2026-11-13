@@ -73,7 +73,7 @@
       `<ellipse cx="${x - rx * .28 + lx}" cy="${y - ry * .42}" rx="${rx * .36}" ry="${ry * .3}" fill="#fff"/>` +
       `<circle cx="${x + rx * .45 + lx}" cy="${y + ry * .45}" r="${rx * .17}" fill="#fff" opacity=".9"/>` +
       `<path d="M${x - rx - 1.5},${y - ry * .35} Q${x - rx * .3},${y - ry - 2.6} ${x + rx + 1},${y - ry * .5}" stroke="${OUT}" stroke-width="2.8" fill="none" stroke-linecap="round"/>` +
-      (LASH ? `<path d="M${x - rx - 1.5},${y - ry * .35} l-2.6,-1.8" stroke="${OUT}" stroke-width="1.8" stroke-linecap="round"/>` : '');
+      (LASH ? `<path d="M${x - rx - 1.2},${y - ry * .3} q-3.4,-0.6 -6,-4.6 M${x - rx * .86},${y - ry * .78} q-2.6,-1.8 -3.8,-6.4 M${x - rx * .3},${y - ry - 1.6} q-1.2,-2.6 -0.6,-6" stroke="${OUT}" stroke-width="2" fill="none" stroke-linecap="round"/>` : '');
     const blush = `<ellipse cx="-4" cy="13" rx="6" ry="3.4" fill="#ff8f8f" opacity=".5"/><ellipse cx="26" cy="12.5" rx="4.5" ry="3" fill="#ff8f8f" opacity=".5"/>`;
     if (kind === 'normal' || kind === 'smile') {
       s += openEye(3.5, 3, 6.6, 9) + openEye(22.5, 3, 5.4, 8.6) + brow(3, -11, 6, 0.6) + brow(22.5, -11, 5, -0.6) + blush;
@@ -113,7 +113,7 @@
     if (hs === 'pony') s += `<g transform="translate(-22,-20) rotate(${f(sway)})">${tail}</g>`;
     if (hs === 'twin') s += `<g transform="translate(-25,-2) rotate(${f(-58 + sway * 0.5)}) scale(0.8)">${tail}</g>`;
     if (hs === 'long') s += `<g transform="rotate(${f(sway * 0.3)},-22,-12)"><path d="M-33,-10 Q-49,24 -44,62 Q-37,75 -24,70 Q-13,66 -15,52 Q-18,24 -13,6Z" ${HF}/><path d="M-37,14 Q-41,40 -35,60" stroke="${HAIR_HI}" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/></g>`;
-    s += hs === 'bob' ? `<path d="M-36,4 Q-40,-36 0,-37 Q39,-37 36,-2 Q30,-20 6,-20 Q-18,-20 -24,6 Q-24,24 -14,33 Q-30,41 -39,28 Q-42,14 -36,4Z" ${HF}/>`
+    s += hs === 'short' ? `<path d="M-29,-15 Q-35,-36 0,-37 Q39,-37 36,-2 Q30,-20 6,-20 Q-14,-20 -19,-14 Q-24,-11 -29,-15Z" ${HF}/>` : hs === 'bob' ? `<path d="M-36,4 Q-40,-36 0,-37 Q39,-37 36,-2 Q30,-20 6,-20 Q-18,-20 -24,6 Q-24,24 -14,33 Q-30,41 -39,28 Q-42,14 -36,4Z" ${HF}/>`
       : `<path d="M-35,4 Q-40,-36 0,-37 Q39,-37 36,-2 Q30,-20 6,-20 Q-18,-20 -24,6 Q-26,20 -22,26 Q-34,22 -35,4Z" ${HF}/>`;
     // ear
     s += `<ellipse cx="-17" cy="8" rx="5.5" ry="7" fill="${SKIN}" stroke="${OUT}" stroke-width="2.2"/><path d="M-18.5,6 q2,2 0.5,5" stroke="${SKIN_SH}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
@@ -124,10 +124,10 @@
     if (hs === 'pony') s += tie(-27, -26);
     // fringe
     s += hs === 'short'
-      ? `<path d="M-24,8 Q-31,-12 -23,-26 L-29,-38 L-15,-33 L-12,-46 L-1,-37 L7,-49 L15,-37 L27,-44 L28,-31 L40,-31 L34,-18 Q38,-10 37,-4 Q33,-13 27,-16 Q28,-9 25,-5 Q21,-14 13,-18 Q13,-10 8,-5 Q5,-14 -3,-19 Q-3,-10 -9,-4 Q-12,-10 -14,-14 Q-19,-6 -18,6 Q-20,12 -24,8Z" ${HF}/>`
+      ? `<path d="M-24,-9 Q-27,-18 -23,-26 L-29,-38 L-15,-33 L-12,-46 L-1,-37 L7,-49 L15,-37 L27,-44 L28,-31 L40,-31 L34,-18 Q38,-10 37,-4 Q33,-13 27,-16 Q28,-9 25,-5 Q21,-14 13,-18 Q13,-10 8,-5 Q5,-14 -3,-19 Q-3,-10 -9,-4 Q-12,-10 -14,-14 Q-18,-11 -19,-7 Q-22,-5 -24,-9Z" ${HF}/>`
       : `<path d="M-24,8 Q-30,-14 -18,-28 Q-4,-40 16,-36 Q38,-32 37,-4 Q33,-13 27,-16 Q28,-9 25,-5 Q21,-14 13,-18 Q13,-10 8,-5 Q5,-14 -3,-19 Q-3,-10 -9,-4 Q-12,-10 -14,-14 Q-19,-6 -18,6 Q-20,12 -24,8Z" ${HF}/>`;
     s += `<path d="M-14,-27 Q0,-34 16,-31" stroke="${HAIR_HI}" stroke-width="3.4" fill="none" stroke-linecap="round" opacity=".8"/>`;
-    s += `<path d="M-20,-8 Q-20,2 -21,7" stroke="${HAIR_SH}" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".6"/>`;
+    if (hs !== 'short') s += `<path d="M-20,-8 Q-20,2 -21,7" stroke="${HAIR_SH}" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".6"/>`;
     // head wear
     const st = `stroke="${OUT}" stroke-width="2.5" stroke-linejoin="round"`;
     if (L.hat === 'goggles') s += `<g transform="translate(6,-30) rotate(8)">` +
