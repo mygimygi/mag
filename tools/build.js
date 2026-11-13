@@ -4,7 +4,9 @@ const hero = require('./art/hero'), weapon = require('./art/weapon'), mon = requ
 const IMG = path.resolve(__dirname, '../assets/img');
 const what = process.argv[2] || 'all', want = k => what === 'all' || what === k;
 const metaFile = path.resolve(__dirname, 'meta.json');
-const meta = fs.existsSync(metaFile) ? JSON.parse(fs.readFileSync(metaFile)) : {};
+// start from the saved metadata; if meta.json is missing, read it back from js/sprites.js so a partial build never drops the other sheets
+const spritesFile = path.resolve(__dirname, '../js/sprites.js');
+const meta = fs.existsSync(metaFile) ? JSON.parse(fs.readFileSync(metaFile)) : fs.existsSync(spritesFile) ? JSON.parse(fs.readFileSync(spritesFile, 'utf8').replace(/^[\s\S]*?window\.MP_SPRITES = /, '').replace(/;\s*$/, '')) : {};
 (async () => {
   if (want('hero')) {
     const A = hero.anims(), frames = [], anims = {}, wx = [];
