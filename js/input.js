@@ -27,22 +27,21 @@
       el.addEventListener('pointerdown', dn); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('lostpointercapture', up);
       el.addEventListener('contextmenu', e => e.preventDefault());
     });
-    // Move pad: one zone for left / right. The thumb can slide across the middle to change direction without lifting.
+    // Round joystick, 8 directions: left / right move, up (also up-left / up-right) jumps, down drops through a platform.
     root.querySelectorAll('[data-pad]').forEach(el => {
-      let id = null, baseY = 0, peakY = 0, jumping = false;
-      // finger position inside the pad, measured from the screen position so it does not depend on offsetX/offsetY support
-      const pos = e => { const r = el.getBoundingClientRect(), rot = MP.App && MP.App.rotated; return rot ? { x: e.clientY - r.top, y: r.right - e.clientX, w: r.height } : { x: e.clientX - r.left, y: e.clientY - r.top, w: r.width }; };
-      const th = () => { const v = el.firstElementChild, r = v ? v.getBoundingClientRect() : null, h = r ? (MP.App && MP.App.rotated ? r.width : r.height) : 80; return h * 0.38; };      // how far "up" counts as a jump
-      const dir = e => { const q = pos(e), d = q.x < q.w / 2 ? 'left' : 'right'; set('touch', 'left', d === 'left'); set('touch', 'right', d === 'right'); el.classList.toggle('pl', d === 'left'); el.classList.toggle('pr', d === 'right'); };
-      // Pushing the thumb up from wherever it rests jumps; easing back down ends the jump so the next push up jumps again.
-      const lift = e => {
-        const y = pos(e).y;
-        if (!jumping) { baseY = Math.max(baseY, y); if (baseY - y > th()) { jumping = true; peakY = y; set('pad', 'jump', true); el.classList.add('pj'); } }
-        else { peakY = Math.min(peakY, y); if (y - peakY > th() * 0.45) { jumping = false; baseY = y; set('pad', 'jump', false); el.classList.remove('pj'); } }
+      let id = null; const base = el.firstElementChild, knob = base.querySelector('.joy-knob');
+      const apply = e => {
+        const r = base.getBoundingClientRect(), rot = MP.App && MP.App.rotated, sx = e.clientX - (r.left + r.width / 2), sy = e.clientY - (r.top + r.height / 2);
+        const dx = rot ? sy : sx, dy = rot ? -sx : sy, R = r.width / 2, dead = R * 0.3, len = Math.hypot(dx, dy) || 1, k = Math.min(1, R * 0.62 / len);
+        knob.style.transform = `translate(${(dx * k).toFixed(1)}px,${(dy * k).toFixed(1)}px)`;
+        const h = Math.abs(dx) > dead && Math.abs(dx) > Math.abs(dy) * 0.41, v = Math.abs(dy) > dead && Math.abs(dy) > Math.abs(dx) * 0.41;
+        const L = h && dx < 0, Rt = h && dx > 0, U = v && dy < 0, D = v && dy > 0;
+        set('touch', 'left', L); set('touch', 'right', Rt); set('pad', 'down', D); set('pad', 'jump', U || D);      // down + jump = drop through
+        el.classList.toggle('pl', L); el.classList.toggle('pr', Rt); el.classList.toggle('pj', U);
       };
-      const dn = e => { e.preventDefault(); if (id !== null) return; id = e.pointerId; try { el.setPointerCapture(id); } catch (_) {} baseY = pos(e).y; jumping = false; dir(e); };
-      const mv = e => { if (e.pointerId === id) { e.preventDefault(); dir(e); lift(e); } };
-      const up = e => { if (e.pointerId !== id) return; e.preventDefault(); id = null; jumping = false; set('touch', 'left', false); set('touch', 'right', false); set('pad', 'jump', false); el.classList.remove('pl', 'pr', 'pj'); };
+      const dn = e => { e.preventDefault(); if (id !== null) return; id = e.pointerId; try { el.setPointerCapture(id); } catch (_) {} apply(e); };
+      const mv = e => { if (e.pointerId === id) { e.preventDefault(); apply(e); } };
+      const up = e => { if (e.pointerId !== id) return; e.preventDefault(); id = null; knob.style.transform = ''; set('touch', 'left', false); set('touch', 'right', false); set('pad', 'jump', false); set('pad', 'down', false); el.classList.remove('pl', 'pr', 'pj'); };
       el.addEventListener('pointerdown', dn); el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('lostpointercapture', up);
       el.addEventListener('contextmenu', e => e.preventDefault());
     });

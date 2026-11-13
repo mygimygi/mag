@@ -1,7 +1,7 @@
 // MAGNET POP - static game data (stages, monsters, upgrades, texts)
 (function () {
   const MP = window.MP = window.MP || {};
-  MP.VERSION = 8;               // shown on the title screen; also stamped on file URLs (index.html, sw.js)
+  MP.VERSION = 9;               // shown on the title screen; also stamped on file URLs (index.html, sw.js)
   MP.W = 1280; MP.H = 720; MP.GROUND = 625;
   MP.DT = 1 / 120;
 

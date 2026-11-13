@@ -400,7 +400,7 @@
     }
     tutorial() {
       if (this.tut < 0) return; const p = this.player, touch = MP.Input.touch;
-      const msg = [touch ? '이동 패드를 좌우로 밀어 움직이고, 위로 밀면 점프해요' : '← → (A D) 키로 움직이고 SPACE (W, ↑) 키로 점프해요',
+      const msg = [touch ? '조이스틱을 좌우로 밀어 움직이고, 위로 밀면 점프해요' : '← → (A D) 키로 움직이고 SPACE (W, ↑) 키로 점프해요',
         touch ? '자석 버튼을 꾹 누르면 전류 ON! 철구 몬스터를 끌어당겨요' : 'Z (또는 J) 키를 꾹 누르면 전류 ON! 철구 몬스터를 끌어당겨요',
         touch ? '버튼에서 손을 떼면 전류 OFF! 흡수한 몬스터가 발사돼요' : 'Z (또는 J) 키를 놓으면 전류 OFF! 흡수한 몬스터가 발사돼요',
         '흡수한 몬스터를 다른 몬스터에게 발사해서 모두 물리쳐요!'][this.tut];

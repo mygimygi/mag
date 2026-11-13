@@ -1,7 +1,7 @@
 // MAGNET POP - bootstrap, screen layout (16:9, phone rotation), fixed-timestep main loop
 (function () {
   const MP = window.MP, R = MP.Render, UI = MP.UI, I = MP.Input, A = MP.Assets, $ = id => document.getElementById(id);
-  const frameEl = $('frame'), stage = $('stage'), cv = $('cv'), touch = $('touch'), btnPause = $('btnPause'), safe = $('safe'), turn = $('turn');
+  const frameEl = $('frame'), stage = $('stage'), cv = $('cv'), touch = $('touch'), btnPause = $('btnPause'), btnFs = $('btnFs'), safe = $('safe'), turn = $('turn');
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const game = MP.game = new MP.Game();
   let rsCap = MP.coarse ? 2 : 2.5, slowT = 0, wake = null, startTok = 0, turnShown = false;
@@ -14,7 +14,7 @@
       else if (id === 'ending' || id === 'quiz') { this.scene = 'ending'; }
       this.syncHud();
     },
-    syncHud() { const playing = this.scene === 'game' && !this.screen; btnPause.hidden = !playing; touch.hidden = !playing; if (!playing) I.releaseAll(); wakeLock(this.scene === 'game'); },
+    syncHud() { const playing = this.scene === 'game' && !this.screen; btnPause.hidden = !playing; btnFs.hidden = !playing || !(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen); touch.hidden = !playing; if (!playing) I.releaseAll(); wakeLock(this.scene === 'game'); },
     // Starts at once when the stage's images are already in memory; otherwise shows a short loading screen first.
     startStage(n) {
       if (n > MP.Save.data.unlocked || n < 1 || n > 16) return;       // locked stages can never be started
@@ -69,6 +69,7 @@
   for (const ev of ['pointerdown', 'touchend', 'click', 'keydown']) addEventListener(ev, unlock, { capture: true, passive: true });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { if (App.scene === 'game' && !App.screen) App.pause(true); } else wakeLock(App.scene === 'game'); });
   btnPause.addEventListener('click', () => App.pause(true));
+  btnFs.addEventListener('click', () => { const d = document; if (d.fullscreenElement || d.webkitFullscreenElement) (d.exitFullscreen || d.webkitExitFullscreen).call(d); else App.fullscreen(true); btnFs.blur(); });
   I.bindTouch(touch);
   document.addEventListener('contextmenu', e => e.preventDefault());
   for (const ev of ['gesturestart', 'gesturechange', 'dblclick']) document.addEventListener(ev, e => e.preventDefault());

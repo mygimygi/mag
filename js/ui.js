@@ -35,7 +35,7 @@
     h += `<div class="world"><div class="wn" style="color:#a02cc8">FINAL<small>최종 결전</small></div><button class="sbtn final ${fl ? 'lock' : ''} ${d.cleared[16] ? 'done' : ''}" data-n="16" ${fl ? 'disabled' : ''}><b>${fl ? '스테이지 1~15를 모두 클리어하면 열려요' : 'STAGE 16 · 마그넷 타이탄 최종 결전'}</b></button></div>`;
     w.innerHTML = h;
     const st = MP.stats(d.batt, d.coil);
-    screens.stages.querySelector('.side').innerHTML = `<div class="mats"><span class="ico bolt"></span>${d.mats} &nbsp;<span class="ico coin"></span>${d.coins || 0}</div><canvas width="540" height="390"></canvas>
+    screens.stages.querySelector('.side').innerHTML = `<div class="mats"><span class="ico bolt"></span>강화 재료 ${d.mats}</div><canvas width="540" height="390"></canvas>
       <div class="lv"><span class="ico battery" style="transform:scale(.7);vertical-align:middle;margin:-8px"></span> 건전지 ${st.batteries}개 &nbsp; <span class="ico coil" style="transform:scale(.7);vertical-align:middle;margin:-8px"></span> 에나멜선 ${st.turns}회</div>
       <button class="btn green" data-up>전자석 강화</button>${d.shopOpen ? '<button class="btn small gold" data-shop>상점 열림!</button>' : ''}<button class="btn small" data-dress>캐릭터 꾸미기</button>${d.ended ? '<button class="btn small" data-quiz>과학 퀴즈</button>' : ''}`;
     MP.Render.drawWeapon(screens.stages.querySelector('.side canvas'), d.batt, d.coil, false);
@@ -118,7 +118,7 @@
   // ---------- how to play ----------
   make('howto', '', `<button class="btn small back" data-b>◀ 메뉴</button><h1 class="title" style="position:absolute;top:16px">게임 방법</h1><div class="panel">
     <div class="cols"><div class="pc"><h3>PC 키보드</h3><ul><li><kbd>←</kbd><kbd>→</kbd> 또는 <kbd>A</kbd><kbd>D</kbd> 이동</li><li><kbd>SPACE</kbd> <kbd>W</kbd> <kbd>↑</kbd> 점프 &nbsp;(<kbd>↓</kbd>+점프: 아래로)</li><li><kbd>Z</kbd> 또는 <kbd>J</kbd> 꾹 누르기 : 전류 ON · 흡수</li><li><kbd>Z</kbd> 또는 <kbd>J</kbd> 놓기 : 전류 OFF · 발사</li><li><kbd>ESC</kbd> 일시정지</li></ul></div>
-    <div><h3>태블릿 터치</h3><ul><li>왼쪽 이동 패드 <kbd>◀</kbd><kbd>▶</kbd> : 좌우로 밀어 이동</li><li>이동 패드에서 엄지를 위로 밀기 : 점프</li><li><kbd>전자석</kbd> 버튼 꾹 누르기 : 전류 ON · 흡수</li><li>버튼에서 손 떼기 : 전류 OFF · 발사</li><li>이동·점프·전자석을 동시에 누를 수 있어요</li></ul></div></div>
+    <div><h3>태블릿 터치</h3><ul><li>왼쪽 조이스틱을 좌우로 밀기 : 이동</li><li>조이스틱을 위로(대각선 포함) 밀기 : 점프</li><li><kbd>전자석</kbd> 버튼 꾹 누르기 : 전류 ON · 흡수</li><li>버튼에서 손 떼기 : 전류 OFF · 발사</li><li>이동·점프·전자석을 동시에 누를 수 있어요</li></ul></div></div>
     <div class="rules">① 전자석을 켜서 <b style="color:#2a66d8">철 몬스터</b>를 끌어당겨 흡수해요. (한 번에 최대 ${MP.HOLD_MAX}마리)<br>② 전자석을 끄면 흡수한 몬스터가 발사돼요. 많이 모을수록 강력해요!<br>③ 모든 몬스터를 물리치면 스테이지 클리어! 강화 재료로 <b style="color:#e06a00">건전지</b>와 <b style="color:#e06a00">에나멜선</b>을 강화해요.<br>④ 몬스터에 닿으면 하트가 줄어들어요. 하트 ${MP.HEARTS}개를 모두 잃으면 게임 오버!</div></div>`);
   UI.howto = () => UI.show('howto');
   on(screens.howto, '[data-b]', () => UI.menu());
@@ -161,7 +161,7 @@
     const why = allMax ? '전자석을 이미 최대로 강화했어요!' : `재료가 부족해요! ${isFinite(need) ? '(' + need + '개 더 필요)' : ''}`;
     const items = Object.keys(d.items || {});
     p.innerHTML = `<h2>STAGE ${r.stage} 클리어!</h2>
-      <div class="res"><span>점수</span><b>${r.score.toLocaleString()}</b><span>강화 재료</span><b>${st.noMats ? '강화 완료 구간' : r.first ? '+' + r.mats : '이미 받았어요'} <small>(보유 ${d.mats})</small></b><span>코인</span><b>+${r.coins || 0} <small>(보유 ${d.coins || 0})</small></b></div>
+      <div class="res"><span>점수</span><b>${r.score.toLocaleString()}</b><span>강화 재료</span><b>${st.noMats ? '강화 완료 구간' : r.first ? '+' + r.mats : '이미 받았어요'} <small>(보유 ${d.mats})</small></b></div>
       ${st.upgradeAfter && r.first ? `<div class="chance">업그레이드 기회! 전자석을 강화할 수 있어요</div>` : ''}${r.stage === 15 ? `<div class="chance">최종 보스 스테이지가 열렸어요!</div>` : ''}
       ${items.length ? `<div class="bag">다음 스테이지 아이템 ${items.map(k => `<span class="ico ${MP.ITEMS[k].ico}"></span>`).join('')}</div>` : ''}
       <div class="tip"><b>과학 한 줄</b> ${MP.TIPS[r.stage]}</div><div class="warn" hidden></div>
@@ -183,28 +183,28 @@
     const d = S(), sc = screens.shop, pn = sc.querySelector('.sh-panel'), num = '①②③④';
     sc.querySelector('.sh-exit').hidden = shPhase === 'quiz' || shPhase === 'right';      // no way out before the question is answered
     sc.querySelector('.sh-exit').textContent = shFrom === 'clear' ? '다음으로 ▶' : '나가기 ▶';
-    sc.querySelector('.sh-coins').innerHTML = `<span class="ico coin"></span><div><small>보유 코인</small><b>${d.coins || 0}</b></div>`;
+    sc.querySelector('.sh-coins').hidden = true;
+    if (shPhase === 'quiz') { d.items = {}; }
     if (shPhase === 'quiz' || shPhase === 'right' || shPhase === 'wrong') {
       const qi = shPhase === 'quiz' ? MP.Save.shopQuestion() : sc.dataset.qi | 0, q = MP.SHOP_Q[qi]; sc.dataset.qi = qi;
-      pn.innerHTML = `<div class="sh-lead">${shFrom === 'clear' && lastClear ? 'STAGE ' + lastClear.stage + ' 클리어! ' : ''}문제를 맞히면 상점이 열려요!</div><div class="sh-q"><b>문제 ${qi + 1}</b>${q.q}</div>
+      pn.innerHTML = `<div class="sh-lead">${shFrom === 'clear' && lastClear ? 'STAGE ' + lastClear.stage + ' 클리어! ' : ''}문제를 맞히면 아이템을 하나 받아요!</div><div class="sh-q"><b>문제 ${qi + 1}</b>${q.q}</div>
         <div class="sh-ans">${q.a.map((a, i) => `<button data-i="${i}" class="${shPhase !== 'quiz' && i === q.c ? 'ok' : ''} ${shPhase === 'wrong' && i === shPick ? 'no' : ''}">${num[i]} ${a}</button>`).join('')}</div>
-        <div class="sh-why">${shPhase === 'right' ? '정답이에요! 상점 문이 열렸어요.' : shPhase === 'wrong' ? `아쉬워요! 정답은 ${num[q.c]}번이에요. 다음 스테이지를 클리어하고 다시 도전해요.` : ''}</div>
-        ${shPhase === 'right' ? '<button class="btn green" data-open>상점 들어가기 ▶</button>' : ''}`;
+        <div class="sh-why">${shPhase === 'right' ? '정답이에요! 보상으로 아이템을 하나 받을 수 있어요.' : shPhase === 'wrong' ? `아쉬워요! 정답은 ${num[q.c]}번이에요. 다음 스테이지를 클리어하고 다시 도전해요.` : ''}</div>
+        ${shPhase === 'right' ? '<button class="btn green" data-open>아이템 고르기 ▶</button>' : ''}`;
       if (shPhase === 'quiz') pn.querySelectorAll('.sh-ans button').forEach(b => b.addEventListener('click', () => {
         MP.Audio.unlock(); shPick = +b.dataset.i; const ok = shPick === q.c; MP.Save.shopAnswered(); sfx(ok ? 'quizOk' : 'quizNo');
         shPhase = ok ? 'right' : 'wrong'; if (!ok) { d.shopOpen = false; MP.Save.save(); } renderShop();
       }));
       on(pn, '[data-open]', () => { shPhase = 'buy'; renderShop(); });
     } else {
-      pn.innerHTML = `<div class="sh-lead">다음 스테이지에서 쓸 아이템을 골라요 (아이템은 다음 스테이지에서만 쓸 수 있어요)</div><div class="sh-items">${Object.keys(MP.ITEMS).map(k => {
-        const it = MP.ITEMS[k], own = d.items[k], can = (d.coins || 0) >= it.price;
-        return `<div class="sh-item ${own ? 'own' : ''}"><span class="ico ${it.ico}"></span><h3>${it.name}</h3><p>${it.desc}</p><button class="sh-buy ${own ? 'own' : can ? 'ok' : 'no'}" data-k="${k}">${own ? '구매 완료' : `<span class="ico coin"></span>${it.price}`}</button></div>`;
-      }).join('')}</div><div class="sh-why"></div>`;
+      const picked = Object.keys(d.items)[0];
+      pn.innerHTML = `<div class="sh-lead">정답 보상! 다음 스테이지에서 쓸 아이템을 하나 골라요</div><div class="sh-items">${Object.keys(MP.ITEMS).map(k => {
+        const it = MP.ITEMS[k], own = picked === k;
+        return `<div class="sh-item ${own ? 'own' : ''}"><span class="ico ${it.ico}"></span><h3>${it.name}</h3><p>${it.desc}</p><button class="sh-buy ${own ? 'own' : picked ? 'no' : 'ok'}" data-k="${k}">${own ? '선택 완료' : '고르기'}</button></div>`;
+      }).join('')}</div><div class="sh-why">${picked ? MP.ITEMS[picked].name + '을(를) 받았어요! 다음 스테이지에서 자동으로 쓰여요.' : ''}</div>`;
       on(pn, '.sh-buy', (e, b) => {
-        const k = b.dataset.k, it = MP.ITEMS[k], w = pn.querySelector('.sh-why');
-        if (d.items[k]) { w.textContent = '이미 샀어요!'; return; }
-        if (MP.Save.buy(k)) { sfx('upgrade'); renderShop(); screens.shop.querySelector('.sh-why').textContent = it.name + '을(를) 샀어요! 다음 스테이지에서 자동으로 쓰여요.'; }
-        else { sfx('nope'); w.textContent = `코인이 부족해요! (${it.price - (d.coins || 0)}개 더 필요)`; }
+        if (Object.keys(d.items).length) { sfx('nope'); pn.querySelector('.sh-why').textContent = '아이템은 하나만 고를 수 있어요!'; return; }
+        d.items = { [b.dataset.k]: 1 }; MP.Save.save(); sfx('upgrade'); renderShop();
       });
     }
   }

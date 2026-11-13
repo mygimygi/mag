@@ -288,3 +288,18 @@ body:not(.touch) #touch { display: none; }
 .sh-buy.own { background: linear-gradient(#7df08e, #25b84a); box-shadow: 0 6px 0 #14702a; font-size: 26px; }
 .sh-exit { position: absolute; right: 36px; bottom: 26px; font-size: 36px; padding: 12px 40px; }
 .side canvas { height: 150px; width: 208px; }
+
+/* fullscreen toggle between the score and the stage number */
+.hud-btn.fs { left: 914px; }
+.hud-btn.fs b { width: 22px; height: 22px; background: linear-gradient(#fff, #fff) 0 0 / 8px 3px no-repeat, linear-gradient(#fff, #fff) 0 0 / 3px 8px no-repeat, linear-gradient(#fff, #fff) 100% 0 / 8px 3px no-repeat, linear-gradient(#fff, #fff) 100% 0 / 3px 8px no-repeat, linear-gradient(#fff, #fff) 0 100% / 8px 3px no-repeat, linear-gradient(#fff, #fff) 0 100% / 3px 8px no-repeat, linear-gradient(#fff, #fff) 100% 100% / 8px 3px no-repeat, linear-gradient(#fff, #fff) 100% 100% / 3px 8px no-repeat; }
+/* round 8-way joystick */
+.joy { position: absolute; left: 0; bottom: 0; padding: 20px 26px 16px 18px; pointer-events: auto; touch-action: none; }
+.joy-base { position: relative; width: calc(var(--tb) * 1.6); height: calc(var(--tb) * 1.6); border-radius: 50%; border: 4px solid rgba(255, 255, 255, .85); background: rgba(20, 50, 130, .4); pointer-events: none; }
+.joy-knob { position: absolute; left: 50%; top: 50%; width: 44%; height: 44%; margin: -22% 0 0 -22%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #cfe0ff 60%, #8fb0f0); border: 3px solid #fff; box-shadow: 0 3px 8px rgba(0, 0, 40, .4); }
+.ja { position: absolute; width: 0; height: 0; border: calc(var(--tb) * .1) solid transparent; opacity: .85; }
+.ja.u { left: 50%; top: 5%; margin-left: calc(var(--tb) * -.13); border-width: 0 calc(var(--tb) * .13) calc(var(--tb) * .17); border-bottom-color: #ffe45a; }
+.ja.d { left: 50%; bottom: 5%; margin-left: calc(var(--tb) * -.1); border-bottom: 0; border-top-color: #fff; }
+.ja.l { left: 5%; top: 50%; margin-top: calc(var(--tb) * -.1); border-left: 0; border-right-color: #fff; }
+.ja.r { right: 5%; top: 50%; margin-top: calc(var(--tb) * -.1); border-right: 0; border-left-color: #fff; }
+.joy.pj .joy-base { border-color: #ffc83d; } .joy.pj .joy-knob { background: radial-gradient(circle at 35% 30%, #fff, #ffe9a0 60%, #ffc83d); }
+.sh-coins[hidden] { display: none; }
