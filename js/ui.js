@@ -165,12 +165,11 @@
       ${st.upgradeAfter && r.first ? `<div class="chance">업그레이드 기회! 전자석을 강화할 수 있어요</div>` : ''}${r.stage === 15 ? `<div class="chance">최종 보스 스테이지가 열렸어요!</div>` : ''}
       ${items.length ? `<div class="bag">다음 스테이지 아이템 ${items.map(k => `<span class="ico ${MP.ITEMS[k].ico}"></span>`).join('')}</div>` : ''}
       <div class="tip"><b>과학 한 줄</b> ${MP.TIPS[r.stage]}</div><div class="warn" hidden></div>
-      <div class="row"><button class="btn green" data-a="next">다음 스테이지 ▶</button><button class="btn ${canUp ? 'gold' : 'gray'}" style="cursor:pointer" data-a="up">전자석 강화</button><button class="btn ${d.shopOpen ? 'gold' : 'gray'}" style="cursor:pointer" data-a="shop">상점</button></div>`;
+      <div class="row"><button class="btn green" data-a="next">다음 스테이지 ▶</button><button class="btn ${canUp ? 'gold' : 'gray'}" style="cursor:pointer" data-a="up">전자석 강화</button></div>`;
     on(p, '[data-a]', (e, b) => {
       const n = r.stage + 1, a = b.dataset.a, w = p.querySelector('.warn');
       if (a === 'next') return UI.tryStart(n);
-      if (a === 'up') { if (canUp) return UI.upgrade('clear'); sfx('nope'); w.textContent = why; w.hidden = false; return; }
-      if (S().shopOpen) return UI.shop('clear'); sfx('nope'); w.textContent = '상점은 스테이지를 클리어할 때마다 한 번 열려요!'; w.hidden = false;
+      if (canUp) return UI.upgrade('clear'); sfx('nope'); w.textContent = why; w.hidden = false;
     });
     UI.show('clear'); if (MP.App) { MP.App.scene = 'game'; MP.App.syncHud(); }
   };
@@ -178,15 +177,18 @@
   // ---------- shop: one question per visit; a right answer lets the player buy items for the next stage ----------
   make('shop', '', `<h1 class="title" style="position:absolute;top:14px">상점</h1><div class="sh-coins"></div><div class="panel sh-panel"></div><button class="btn sh-exit">나가기 ▶</button>`);
   let shFrom = 'clear', shPhase = 'quiz', shPick = -1;
-  UI.shop = from => { shFrom = from || 'clear'; shPhase = 'quiz'; shPick = -1; renderShop(); UI.show('shop'); MP.Audio.music('MENU'); };
+  // from 'clear': opened automatically after every stage clear (r = that stage's result); the question must be answered before leaving
+  UI.shop = (from, r) => { shFrom = from || 'clear'; if (r) lastClear = r; shPhase = 'quiz'; shPick = -1; renderShop(); UI.show('shop'); MP.Audio.music('MENU'); };
   function renderShop() {
     const d = S(), sc = screens.shop, pn = sc.querySelector('.sh-panel'), num = '①②③④';
+    sc.querySelector('.sh-exit').hidden = shPhase === 'quiz' || shPhase === 'right';      // no way out before the question is answered
+    sc.querySelector('.sh-exit').textContent = shFrom === 'clear' ? '다음으로 ▶' : '나가기 ▶';
     sc.querySelector('.sh-coins').innerHTML = `<span class="ico coin"></span><div><small>보유 코인</small><b>${d.coins || 0}</b></div>`;
     if (shPhase === 'quiz' || shPhase === 'right' || shPhase === 'wrong') {
       const qi = shPhase === 'quiz' ? MP.Save.shopQuestion() : sc.dataset.qi | 0, q = MP.SHOP_Q[qi]; sc.dataset.qi = qi;
-      pn.innerHTML = `<div class="sh-lead">문제를 맞히면 상점이 열려요!</div><div class="sh-q"><b>문제 ${qi + 1}</b>${q.q}</div>
+      pn.innerHTML = `<div class="sh-lead">${shFrom === 'clear' && lastClear ? 'STAGE ' + lastClear.stage + ' 클리어! ' : ''}문제를 맞히면 상점이 열려요!</div><div class="sh-q"><b>문제 ${qi + 1}</b>${q.q}</div>
         <div class="sh-ans">${q.a.map((a, i) => `<button data-i="${i}" class="${shPhase !== 'quiz' && i === q.c ? 'ok' : ''} ${shPhase === 'wrong' && i === shPick ? 'no' : ''}">${num[i]} ${a}</button>`).join('')}</div>
-        <div class="sh-why">${shPhase === 'right' ? '정답이에요! 상점 문이 열렸어요.' : shPhase === 'wrong' ? `아쉬워요! 정답은 ${num[q.c]}번이에요. 상점은 다음 스테이지를 클리어하면 다시 열려요.` : ''}</div>
+        <div class="sh-why">${shPhase === 'right' ? '정답이에요! 상점 문이 열렸어요.' : shPhase === 'wrong' ? `아쉬워요! 정답은 ${num[q.c]}번이에요. 다음 스테이지를 클리어하고 다시 도전해요.` : ''}</div>
         ${shPhase === 'right' ? '<button class="btn green" data-open>상점 들어가기 ▶</button>' : ''}`;
       if (shPhase === 'quiz') pn.querySelectorAll('.sh-ans button').forEach(b => b.addEventListener('click', () => {
         MP.Audio.unlock(); shPick = +b.dataset.i; const ok = shPick === q.c; MP.Save.shopAnswered(); sfx(ok ? 'quizOk' : 'quizNo');

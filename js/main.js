@@ -37,7 +37,7 @@
   };
   let fsTried = false;
   for (const ev of ['click', 'touchend', 'keydown']) addEventListener(ev, e => { if (fsTried || e.code === 'Escape') return; fsTried = true; App.fullscreen(false); }, { capture: true });
-  MP.onStageClear = r => { if (r.stage === 16) UI.ending(r); else { UI.clear(r); App.scene = 'game'; App.syncHud(); } };
+  MP.onStageClear = r => { if (r.stage === 16) UI.ending(r); else UI.shop('clear', r); };
   MP.onGameOver = () => { UI.show('over'); App.scene = 'game'; App.syncHud(); };
   MP.haptic = ms => { try { if (MP.coarse && navigator.vibrate) navigator.vibrate(ms); } catch (e) {} };
   function wakeLock(on) {          // keep the screen awake while playing (ignored where unsupported)

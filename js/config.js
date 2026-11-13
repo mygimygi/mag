@@ -113,9 +113,9 @@
   // ---- shop: answer a question to open it; items bought here work only in the next stage that is started ----
   MP.ITEMS = {
     heart:  { name: '하트', desc: '하트 1개를 더 가지고 시작해요', price: 10, ico: 'heart' },
-    shield: { name: '전자 보호막', desc: '30초 동안 몬스터의 공격을 막아 줘요', price: 15, dur: 30, ico: 'shield' },
-    boots:  { name: '스피드 부츠', desc: '40초 동안 더 빨리 달려요', price: 12, dur: 40, ico: 'boots' },
-    magnet: { name: '초강력 자석', desc: '40초 동안 흡수 범위가 넓어져요', price: 15, dur: 40, ico: 'smagnet' },
+    shield: { name: '전자 보호막', desc: '25초 동안 몬스터의 공격을 막아 줘요', price: 15, dur: 25, ico: 'shield' },
+    boots:  { name: '스피드 부츠', desc: '25초 동안 더 빨리 달려요', price: 12, dur: 25, ico: 'boots' },
+    magnet: { name: '초강력 자석', desc: '25초 동안 흡수 범위가 넓어져요', price: 15, dur: 25, ico: 'smagnet' },
   };
   MP.SHOP_Q = [
     { q: '전자석은 언제 자석의 성질을 나타낼까요?', a: ['에나멜선에 전류가 흐를 때', '에나멜선에 물을 부었을 때', '에나멜선을 차갑게 만들었을 때', '에나멜선을 나무에 감았을 때'], c: 0 },
