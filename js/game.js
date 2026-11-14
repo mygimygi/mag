@@ -223,6 +223,8 @@
       if (boost > 1 && p.onGround && Math.abs(p.vx) > 250 && Math.floor(this.time * 12) !== Math.floor((this.time - dt) * 12)) this.addFx({ kind: 'puff', x: p.x - p.facing * 20, y: p.y - 6, dur: 0.28, s: 0.5 });
       if (p.hurtT > 0) p.vx *= Math.pow(0.05, dt); else p.vx = Math.abs(target - p.vx) <= acc ? target : p.vx + sign(target - p.vx) * acc;
       if (I.jumpEdge) { I.jumpEdge = false; if (ctl) p.jumpBuf = 0.13; }
+      // joystick pushed down: drop through the platform underfoot (does nothing on the ground)
+      if (I.padDrop) { I.padDrop = false; if (ctl && p.onGround && p.plat && !p.plat.ground) { p.dropT = 0.22; p.onGround = false; p.plat = null; } }
       p.coyote = p.onGround ? 0.09 : p.coyote - dt;
       if (p.jumpBuf > 0 && p.coyote > 0) {
         p.jumpBuf = 0; p.coyote = 0;

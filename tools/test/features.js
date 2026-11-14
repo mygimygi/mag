@@ -206,6 +206,17 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   ok('pushing the thumb up on the move pad jumps while still moving', padJump.jump && padJump.left && padJump.air && padJump.hi, padJump);
   const hops = await G(() => { MP.App.paused = true; const g = MP.game, pl = g.player; let n = 0, prev = pl.vy; for (let i = 0; i < 120 * 3; i++) { pl.inv = 30; g.update(MP.DT); if (pl.vy < -500 && prev >= 0) n++; prev = pl.vy; } MP.App.paused = false; return n; });
   ok('holding the joystick up does not auto-repeat the jump', hops === 0, hops);
+  // joystick down: never jumps on the ground; drops through a platform
+  const jb = await p.locator('.joy-base').boundingBox(), jc = { x: jb.x + jb.width / 2, y: jb.y + jb.height / 2 }, jd = { x: jc.x, y: jc.y + jb.height * 0.4 };
+  await evp('pointermove', 21, jc); await p.waitForTimeout(900); await G(() => { const pl = MP.game.player; pl.x = 640; pl.y = 625; pl.vy = 0; pl.inv = 30; });
+  await evp('pointermove', 21, jd); let minY = 999; for (let i = 0; i < 8; i++) { await p.waitForTimeout(60); minY = Math.min(minY, await G(() => MP.game.player.y)); }
+  const downGround = { jump: await G(() => MP.Input.jump), minY };
+  await evp('pointermove', 21, jc); await p.waitForTimeout(150);
+  const drop = await G(() => { const g = MP.game, pl = g.player, pf = g.world.plats.find(q => !q.ground && q.kind === 'solid' && !q.move); pl.x = pf.x + pf.w / 2; pl.y = pf.y; pl.vy = 0; pl.onGround = true; pl.plat = pf; pl.inv = 30; return pf.y; });
+  await evp('pointermove', 21, jd); await p.waitForTimeout(500);
+  const dropped = await G(() => MP.game.player.y);
+  ok('joystick down does not jump on the ground, and drops through a platform', !downGround.jump && downGround.minY >= 620 && dropped > drop + 20, { downGround, platY: drop, dropped });
+  await evp('pointermove', 21, jc); await p.waitForTimeout(100);
   await evp('pointermove', 21, pl2); await p.waitForTimeout(900);
   const padDown = await G(() => ({ jump: MP.Input.jump, ground: MP.game.player.onGround, left: MP.Input.left }));
   await evp('pointermove', 21, upPt); await p.waitForTimeout(140);
