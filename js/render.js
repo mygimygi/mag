@@ -49,7 +49,7 @@
   let cv, ctx, rs = 1;
   const R = MP.Render = {
     init(canvas) { cv = canvas; ctx = cv.getContext('2d'); },
-    setScale(s) { if (s === rs && cv.width === Math.round(W * rs)) return; rs = s; cv.width = Math.round(W * rs); cv.height = Math.round(H * rs); layers.clear(); },
+    setScale(s) { s = Math.round(s * 1000) / 1000; if (s === rs && cv.width === Math.round(W * rs)) return; rs = s; cv.width = Math.round(W * rs); cv.height = Math.round(H * rs); layers.clear(); },
     get ctx() { return ctx; },
   };
   // draw one frame of a sprite sheet. (x,y) = sprite origin. o: flip, s (scale), rot (radians), py (pivot offset above origin), a (alpha)

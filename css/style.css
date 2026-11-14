@@ -3,8 +3,9 @@
 html, body { margin: 0; height: 100%; overflow: hidden; background: #0f2a66; overscroll-behavior: none; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-text-size-adjust: 100%; }
 body { position: fixed; inset: 0; }
 body { font-family: "Jua", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif; color: #1b2a5c; }
-#stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; background: #6cc0f5; }
-#cv { position: absolute; inset: 0; width: 1280px; height: 720px; display: block; }
+#stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; }
+/* the canvas is sized in JS to the exact on-screen pixel size, so the browser never has to resize it */
+#cv { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; display: block; background: #6cc0f5; pointer-events: none; }
 #ui { position: absolute; inset: 0; }
 [hidden] { display: none !important; }
 .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }

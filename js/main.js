@@ -4,7 +4,7 @@
   const frameEl = $('frame'), stage = $('stage'), cv = $('cv'), touch = $('touch'), btnPause = $('btnPause'), btnFs = $('btnFs'), safe = $('safe'), turn = $('turn');
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const game = MP.game = new MP.Game();
-  let rsCap = MP.coarse ? 2 : 2.5, slowT = 0, wake = null, startTok = 0, turnShown = false;
+  let rsCap = 2,                        slowT = 0, wake = null, startTok = 0, turnShown = false;
   const App = MP.App = {
     scene: 'load', paused: false, screen: 'loading', fps: 60, bgN: 1, rotated: false, viewScale: 1,
     onScreen(id) {
@@ -53,10 +53,13 @@
     const rot = MP.coarse && H0 > W0 * 1.15, fw = rot ? H0 : W0, fh = rot ? W0 : H0;
     frameEl.style.left = r.left + 'px'; frameEl.style.top = r.top + 'px'; frameEl.style.width = fw + 'px'; frameEl.style.height = fh + 'px';
     frameEl.style.transform = rot ? `translate(${W0}px,0) rotate(90deg)` : 'none';
-    const s = Math.min(fw / MP.W, fh / MP.H);
-    stage.style.transform = `translate(${Math.round((fw - MP.W * s) / 2)}px,${Math.round((fh - MP.H * s) / 2)}px) scale(${s})`;
-    const rs = clamp(s * (window.devicePixelRatio || 1), 1, rsCap);
-    R.setScale(Math.round(rs * 4) / 4); App.viewScale = s; App.rotated = rot; App.renderScale = Math.round(rs * 4) / 4;
+    const s = Math.min(fw / MP.W, fh / MP.H), dpr = window.devicePixelRatio || 1, ox = Math.round((fw - MP.W * s) / 2), oy = Math.round((fh - MP.H * s) / 2);
+    stage.style.transform = `translate(${ox}px,${oy}px) scale(${s})`;                 // the DOM screens (menus, buttons) are scaled by CSS
+    // The canvas is not CSS-scaled: its pixel size matches the screen exactly, so the browser shows it 1:1 with no per-frame resampling
+    // (that resampling made PCs without graphics acceleration stutter). Above the cap it is drawn smaller and stretched instead.
+    const rs = clamp(s * dpr, 0.5, rsCap); R.setScale(rs);
+    Object.assign(cv.style, { left: ox + 'px', top: oy + 'px', width: (MP.W * s) + 'px', height: (MP.H * s) + 'px' });
+    App.viewScale = s; App.rotated = rot; App.renderScale = rs;
     document.body.classList.toggle('small', s < 0.72);
     touch.style.setProperty('--tb', Math.round(clamp(fh * 0.2, 58, 108)) + 'px');
     stage.style.setProperty('--boost', clamp(46 / (48 * s), 1, 2.2).toFixed(2));
