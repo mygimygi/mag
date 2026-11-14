@@ -19,7 +19,24 @@
   // ---------- main menu ----------
   make('menu', '', `<button class="btn big" data-go="start">게임 시작</button>
     <div class="row"><button class="btn" data-go="dress">캐릭터 꾸미기</button><button class="btn" data-go="howto">게임 방법</button><button class="btn" data-go="science">과학 교실</button><button class="btn" data-go="settings">설정</button></div>`);
-  on(screens.menu, '[data-go]', (e, b) => { const g = b.dataset.go; if (g === 'start') { sfx('start'); if (!S().settings.diffDone) UI.diff(); else UI.afterDiff(); } else UI[g]('menu'); });
+  on(screens.menu, '[data-go]', (e, b) => { const g = b.dataset.go; if (g === 'start') { sfx('start'); if (MP.Save.hasProgress()) UI.cont(); else UI.beginFlow(); } else UI[g]('menu'); });
+  UI.beginFlow = () => { if (!S().settings.diffDone) UI.diff(); else UI.afterDiff(); };
+  // ---------- continue / start over ----------
+  make('cont', '', `<button class="btn small back" data-b>◀ 메뉴</button><h1 class="title" style="position:absolute;top:60px">게임 시작</h1><div class="row df-row cont-cards"></div><div class="cont-ask" hidden></div>`);
+  UI.cont = () => {
+    const d = S(), sc = screens.cont, top = Math.min(16, d.unlocked);
+    sc.querySelector('.cont-cards').innerHTML = `<button class="df-card normal" data-c="go"><b>이어하기</b><span>STAGE ${top}부터 계속해요<br>강화 · 재료 · 캐릭터 그대로</span></button>
+      <button class="df-card easy" data-c="new"><b>처음부터</b><span>STAGE 1부터 새로 시작해요<br>난이도와 캐릭터도 새로 골라요</span></button>`;
+    sc.querySelector('.cont-cards').hidden = false; sc.querySelector('.cont-ask').hidden = true; UI.show('cont'); MP.Audio.music('MENU');
+    on(sc.querySelector('.cont-cards'), '[data-c]', (e, b) => {
+      if (b.dataset.c === 'go') return UI.afterDiff();
+      const ask = sc.querySelector('.cont-ask'); sc.querySelector('.cont-cards').hidden = true; ask.hidden = false;
+      ask.innerHTML = `<div class="panel"><h2>처음부터 할까요?</h2><div class="big2">지금 기록(STAGE ${top}까지, 건전지 ${d.batt}개 · 에나멜선 ${d.coil * 10}회)이<br>지워지고 다시 되돌릴 수 없어요.</div><div class="row"><button class="btn red" data-y>네, 처음부터</button><button class="btn" data-n>아니요</button></div></div>`;
+      on(ask, '[data-y]', () => { MP.Save.newGame(); MP.Assets.applyLook(null).then(() => UI.beginFlow()); });
+      on(ask, '[data-n]', () => UI.cont());
+    });
+  };
+  on(screens.cont, '[data-b]', () => UI.menu());
   UI.afterDiff = () => { if (S().lookDone) UI.stages(); else UI.dress('start'); };
   // ---------- difficulty (asked once at the first start; can be changed in the settings) ----------
   make('diff', '', `<h1 class="title" style="position:absolute;top:60px">난이도를 골라요</h1><div class="row df-row">

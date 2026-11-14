@@ -314,3 +314,9 @@ body:not(.touch) #touch { display: none; }
 .df-card:active { transform: translateY(6px); }
 .df-note { font-size: 28px; color: #fff; text-shadow: 0 3px 0 #173d96; margin-top: 30px; }
 #settings .line { padding: 8px 6px; }
+
+/* continue / start over */
+.cont-ask { margin-top: 60px; }
+.cont-ask .panel { text-align: center; display: flex; flex-direction: column; gap: 18px; align-items: center; min-width: 640px; }
+.cont-ask h2 { font-size: 50px; color: #e8303f; } .cont-ask .big2 { font-size: 30px; line-height: 1.45; }
+.small .cont-ask .big2 { font-size: 36px; }

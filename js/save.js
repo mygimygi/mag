@@ -10,6 +10,11 @@
       return d;
     },
     save() { try { localStorage.setItem(KEY, JSON.stringify(this.data)); return true; } catch (e) { return false; } },
+    // Is there a game to continue? (any stage cleared, materials earned or an upgrade bought)
+    hasProgress() { const d = this.data; return d.unlocked > 1 || Object.keys(d.cleared).length > 0 || d.mats > 0 || d.batt > 1 || d.coil > 1; },
+    // "Start over" for the next player on this device: wipes the progress, the dressed-up look and the difficulty choice.
+    // Sound and fullscreen settings stay.
+    newGame() { const s = this.data.settings; this.data = fresh(); Object.assign(this.data.settings, { bgm: s.bgm, sfx: s.sfx, vol: s.vol, autoFs: s.autoFs }); this.save(); },
     reset() { const s = this.data.settings, l = this.data.look, ld = this.data.lookDone; this.data = fresh(); this.data.settings = s; this.data.look = l; this.data.lookDone = ld; this.save(); },
     /** record a stage clear; returns materials actually granted (only the first clear pays out) */
     clearStage(n, score, mats) {
