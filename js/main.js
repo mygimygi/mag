@@ -106,8 +106,5 @@
   });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !window.__ARTIFACT__) {
     navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => reg.update().catch(() => {})).catch(() => {});
-    // a newer service worker took over while this page was open: reload once so the new files are used
-    let hadCtl = !!navigator.serviceWorker.controller, reloaded = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadCtl && !reloaded) { reloaded = true; location.reload(); } hadCtl = true; });
   }
 })();
