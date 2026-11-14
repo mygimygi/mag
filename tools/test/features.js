@@ -15,7 +15,9 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   ok('only core images load at start; a stage loads its own images on demand', lazy.boot < lazy.total - 15 && lazy.sync1 && lazy.waiting === 'loading' && lazy.golem && lazy.bg11 && !lazy.titanLoaded, lazy);
   ok('stage 16 locked at start (cannot start)', await G(() => { MP.App.startStage(16); return MP.App.scene !== 'game'; }));
   await p.click('#menu [data-go=start]', { force: true });
-  ok('first start opens the character dress-up screen', await G(() => MP.UI.cur === 'dress'));
+  ok('first start asks for the difficulty (easy / normal)', await G(() => MP.UI.cur === 'diff' && document.querySelectorAll('#diff .df-card').length === 2));
+  await p.click('#diff [data-d=normal]', { force: true });
+  ok('first start then opens the character dress-up screen', await G(() => MP.UI.cur === 'dress' && MP.Save.data.settings.diff === 'normal' && MP.Save.data.settings.diffDone));
   await p.click('.d-chip[data-k=gender][data-v=boy]'); await p.click('.d-sw[data-k=cloth][data-v=green]'); await p.click('.d-chip[data-k=hat][data-v=cap]'); await p.click('.d-sw[data-k=skin][data-v=tan]'); await p.click('.d-chip[data-k=glasses][data-v=true]'); await p.click('.d-chip[data-k=eyes][data-v=large]');
   ok('dress-up choices are applied to the preview look', await G(() => document.querySelector('.d-chip[data-k=hair].sel').dataset.v === 'short' && document.querySelectorAll('.d-svg svg').length === 1));
   await p.click('.d-go', { force: true }); await p.waitForFunction(() => MP.UI.cur === 'stages', null, { timeout: 15000 });
@@ -164,6 +166,10 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   // --- fullscreen on the first input ---
   const fs = await (async () => { const pg = await ctx.newPage(); await pg.addInitScript(() => { window.__forceFs = true; }); await pg.goto(URL); await pg.waitForFunction(() => window.MP && MP.ready, null, { timeout: 20000 }); const before = await pg.evaluate(() => !!document.fullscreenElement); await pg.mouse.click(640, 120); await pg.waitForTimeout(600); const after = await pg.evaluate(() => !!document.fullscreenElement); const setting = await pg.evaluate(() => MP.Save.data.settings.autoFs); await pg.close(); return { before, after, setting }; })();
   ok('game goes fullscreen on the first click (setting on by default)', !fs.before && fs.after && fs.setting === true, fs);
+  // --- difficulty: easy = no bats and 10% slower monsters ---
+  const diff = await G(() => { const st = MP.Save.data.settings, g = MP.game, run = d => { st.diff = d; MP.Save.data.unlocked = 16; MP.App.startStage(7); MP.App.paused = true; const types = new Set(); let t = 0; const mul = g.speedMul; while (g.state !== 'clear' && t < 200) { g.player.inv = 30; g.update(MP.DT); t += MP.DT; g.monsters.forEach(m => { types.add(m.type); if (m.state === 'live') { g.defeated(m.type, 0, m.x, m.y, 1); m.dead = true; } }); } return { mul, bats: types.has('bat'), others: types.size, cleared: g.state === 'clear' }; };
+    const easy = run('easy'), normal = run('normal'); MP.UI.settings(); document.querySelector('#settings .dsel[data-d=easy]').click(); const viaSettings = st.diff; document.querySelector('#settings .dsel[data-d=normal]').click(); MP.App.paused = false; return { easy, normal, viaSettings, back: st.diff }; });
+  ok('easy: no bats, monsters 10% slower, stage still clears; normal unchanged; switchable in settings', !diff.easy.bats && diff.easy.others >= 2 && diff.easy.cleared && diff.normal.bats && diff.normal.cleared && Math.abs(diff.easy.mul / diff.normal.mul - 0.9) < 0.001 && diff.viaSettings === 'easy' && diff.back === 'normal', diff);
   await G(() => MP.App.startStage(1)); await p.waitForTimeout(300);
   // --- pause ---
   await p.waitForTimeout(1500); await p.keyboard.press('Escape'); await p.waitForTimeout(200);
@@ -199,7 +205,7 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   const padJump = await G(() => ({ jump: MP.Input.jump, left: MP.Input.left, air: !MP.game.player.onGround, hi: document.querySelector('[data-pad]').classList.contains('pj') }));
   ok('pushing the thumb up on the move pad jumps while still moving', padJump.jump && padJump.left && padJump.air && padJump.hi, padJump);
   const hops = await G(() => { MP.App.paused = true; const g = MP.game, pl = g.player; let n = 0, prev = pl.vy; for (let i = 0; i < 120 * 3; i++) { pl.inv = 30; g.update(MP.DT); if (pl.vy < -500 && prev >= 0) n++; prev = pl.vy; } MP.App.paused = false; return n; });
-  ok('holding the joystick up keeps jumping: a new jump starts each time the hero lands', hops >= 2, hops);
+  ok('holding the joystick up does not auto-repeat the jump', hops === 0, hops);
   await evp('pointermove', 21, pl2); await p.waitForTimeout(900);
   const padDown = await G(() => ({ jump: MP.Input.jump, ground: MP.game.player.onGround, left: MP.Input.left }));
   await evp('pointermove', 21, upPt); await p.waitForTimeout(140);

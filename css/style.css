@@ -303,3 +303,13 @@ body:not(.touch) #touch { display: none; }
 .ja.r { right: 5%; top: 50%; margin-top: calc(var(--tb) * -.1); border-right: 0; border-left-color: #fff; }
 .joy.pj .joy-base { border-color: #ffc83d; } .joy.pj .joy-knob { background: radial-gradient(circle at 35% 30%, #fff, #ffe9a0 60%, #ffc83d); }
 .sh-coins[hidden] { display: none; }
+
+/* difficulty */
+.df-row { gap: 40px; margin-top: 40px; }
+.df-card { font: inherit; width: 420px; height: 330px; border-radius: 36px; border: 7px solid #fff; cursor: pointer; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; box-shadow: 0 12px 0 rgba(15, 47, 143, .5), 0 20px 34px rgba(10, 30, 90, .35); }
+.df-card b { font-weight: normal; font-size: 92px; text-shadow: 0 6px 0 rgba(0, 0, 0, .25); }
+.df-card span { font-size: 28px; line-height: 1.45; }
+.df-card.easy { background: linear-gradient(#8ff09a, #25b84a); } .df-card.normal { background: linear-gradient(#7fb8ff, #2a66d8); }
+.df-card:active { transform: translateY(6px); }
+.df-note { font-size: 28px; color: #fff; text-shadow: 0 3px 0 #173d96; margin-top: 30px; }
+#settings .line { padding: 8px 6px; }

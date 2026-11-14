@@ -1,7 +1,7 @@
 // MAGNET POP - persistent progress (localStorage, with in-memory fallback)
 (function () {
   const MP = window.MP, KEY = 'magnetpop.save.v1';
-  const fresh = () => ({ unlocked: 1, cleared: {}, mats: 0, batt: 1, coil: 1, best: {}, ended: false, quizBest: 0, look: null, lookDone: false, coins: 0, items: {}, shopOpen: false, shopQ: { order: [0, 1, 2, 3, 4], pos: 0 }, settings: { bgm: true, sfx: true, vol: 0.7, autoFs: true } });
+  const fresh = () => ({ unlocked: 1, cleared: {}, mats: 0, batt: 1, coil: 1, best: {}, ended: false, quizBest: 0, look: null, lookDone: false, coins: 0, items: {}, shopOpen: false, shopQ: { order: [0, 1, 2, 3, 4], pos: 0 }, settings: { bgm: true, sfx: true, vol: 0.7, autoFs: true, diff: 'normal', diffDone: false } });
   const Save = MP.Save = {
     data: fresh(),
     load() {

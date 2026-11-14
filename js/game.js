@@ -166,7 +166,8 @@
       this.dropAcc = 0; this.dropGiven = 0; this.hint = ''; this.hintT = 0; this.tut = s.tutorial ? 0 : -1; this.shake = 0; this.windX = 0; this.banner = { text: 'STAGE ' + n, sub: s.name, t: 0, dur: 2.0 }; this.nopeSeen = false; this.kills = 0;
       this.assist = Math.min(3, (MP.fails && MP.fails[n]) || 0);                 // each failed try slows the monsters a little (max -15%)
       this.shieldHit = 0;
-      this.speedMul = (1 + (n - 1) * 0.03) * (1 - this.assist * 0.05); this.nozzle = { x: 318, y: G - 42 }; this.result = null;
+      this.easy = sv.settings.diff === 'easy';                       // easy: no bats, every monster 10% slower
+      this.speedMul = (1 + (n - 1) * 0.03) * (1 - this.assist * 0.05) * (this.easy ? 0.9 : 1); this.nozzle = { x: 318, y: G - 42 }; this.result = null;
       MP.Input.jumpEdge = false; MP.Audio.hum(false);
       MP.Audio.music(s.bgm);
       if (n === 10) this.say('전자석을 강화하면 더 멀리, 더 세게 끌어당겨요!', 5);
@@ -222,7 +223,6 @@
       if (boost > 1 && p.onGround && Math.abs(p.vx) > 250 && Math.floor(this.time * 12) !== Math.floor((this.time - dt) * 12)) this.addFx({ kind: 'puff', x: p.x - p.facing * 20, y: p.y - 6, dur: 0.28, s: 0.5 });
       if (p.hurtT > 0) p.vx *= Math.pow(0.05, dt); else p.vx = Math.abs(target - p.vx) <= acc ? target : p.vx + sign(target - p.vx) * acc;
       if (I.jumpEdge) { I.jumpEdge = false; if (ctl) p.jumpBuf = 0.13; }
-      if (I.padUp && ctl && p.onGround) p.jumpBuf = 0.13;          // joystick held up: jump again as soon as the hero lands
       p.coyote = p.onGround ? 0.09 : p.coyote - dt;
       if (p.jumpBuf > 0 && p.coyote > 0) {
         p.jumpBuf = 0; p.coyote = 0;
@@ -378,7 +378,7 @@
       } else this.supplyT = 0;
       if (busy) { this.waveGap = 0.9; return; }
       this.waveGap -= dt; if (this.waveGap > 0) return;
-      if (this.wave + 1 < s.waves.length) { this.wave++; this.queue = s.waves[this.wave].map((t, i) => ({ t, at: this.t + i * 0.35, done: false })); }
+      if (this.wave + 1 < s.waves.length) { this.wave++; this.queue = s.waves[this.wave].filter(t => !(this.easy && t === 'bat')).map((t, i) => ({ t, at: this.t + i * 0.35, done: false })); if (!this.queue.length) this.waveGap = 0; }
       else if (s.boss && !this.bossSpawned) { this.bossSpawned = true; this.boss = s.boss === 'king' ? new MP.King(this) : new MP.Titan(this); this.banner = { text: 'WARNING!', sub: s.boss === 'king' ? '컴퍼스 킹 등장!' : '마그넷 타이탄 등장!', t: 0, dur: 2.2, warn: true }; sfx('bossIn'); MP.Audio.music('BOSS'); }
       else this.clear();
     }

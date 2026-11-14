@@ -31,7 +31,7 @@
       switch (this.state) {
         case 'intro': this.anim = 'idle'; if (this.onGround && !this.landed) { this.landed = true; g.shake = 0.3; sfx('slam'); } if (this.t > 1.8) { this.state = 'walk'; this.t = 0; } break;
         case 'walk':
-          this.dir = sign(pl.x - this.x) || 1; this.vx = Math.abs(pl.x - this.x) > 40 ? this.dir * 95 : 0; this.anim = 'move'; this.jumpT -= dt;
+          this.dir = sign(pl.x - this.x) || 1; this.vx = Math.abs(pl.x - this.x) > 40 ? this.dir * 95 * (g.easy ? 0.9 : 1) : 0; this.anim = 'move'; this.jumpT -= dt;
           if (this.jumpT <= 0 && this.onGround) { this.state = 'jump'; this.t = 0; this.jumped = false; }
           break;
         case 'jump':

@@ -19,7 +19,14 @@
   // ---------- main menu ----------
   make('menu', '', `<button class="btn big" data-go="start">게임 시작</button>
     <div class="row"><button class="btn" data-go="dress">캐릭터 꾸미기</button><button class="btn" data-go="howto">게임 방법</button><button class="btn" data-go="science">과학 교실</button><button class="btn" data-go="settings">설정</button></div>`);
-  on(screens.menu, '[data-go]', (e, b) => { const g = b.dataset.go; if (g === 'start') { sfx('start'); if (S().lookDone) UI.stages(); else UI.dress('start'); } else UI[g]('menu'); });
+  on(screens.menu, '[data-go]', (e, b) => { const g = b.dataset.go; if (g === 'start') { sfx('start'); if (!S().settings.diffDone) UI.diff(); else UI.afterDiff(); } else UI[g]('menu'); });
+  UI.afterDiff = () => { if (S().lookDone) UI.stages(); else UI.dress('start'); };
+  // ---------- difficulty (asked once at the first start; can be changed in the settings) ----------
+  make('diff', '', `<h1 class="title" style="position:absolute;top:60px">난이도를 골라요</h1><div class="row df-row">
+    <button class="df-card easy" data-d="easy"><b>쉬움</b><span>하늘을 나는 박쥐가 나오지 않아요<br>몬스터가 10% 느려요</span></button>
+    <button class="df-card normal" data-d="normal"><b>보통</b><span>모든 몬스터가 나와요<br>기본 속도예요</span></button></div><p class="df-note">설정에서 언제든 바꿀 수 있어요</p>`);
+  UI.diff = () => UI.show('diff');
+  on(screens.diff, '[data-d]', (e, b) => { const st = S().settings; st.diff = b.dataset.d; st.diffDone = true; MP.Save.save(); UI.afterDiff(); });
   UI.menu = () => { UI.show('menu'); MP.Audio.music('MENU'); };
 
   // ---------- stage select ----------
@@ -137,12 +144,13 @@
   make('settings', '', `<button class="btn small back" data-b>◀ 메뉴</button><h1 class="title" style="position:absolute;top:16px">설정</h1><div class="panel">
     <div class="line"><span>배경 음악</span><button class="tog" data-t="bgm"></button></div><div class="line"><span>효과음</span><button class="tog" data-t="sfx"></button></div>
     <div class="line"><span>전체 음량</span><input type="range" min="0" max="1" step="0.05" id="vol"></div>
-    <div class="line"><span>시작할 때 전체 화면</span><button class="tog" data-t="autoFs"></button></div><div class="line"><span>전체 화면</span><button class="btn small" data-fs>전체 화면 전환</button></div>
+    <div class="line"><span>난이도</span><div class="row" style="gap:10px"><button class="tog dsel" data-d="easy">쉬움</button><button class="tog dsel" data-d="normal">보통</button></div></div><div class="line"><span>시작할 때 전체 화면</span><button class="tog" data-t="autoFs"></button></div><div class="line"><span>전체 화면</span><button class="btn small" data-fs>전체 화면 전환</button></div>
     <div class="line" style="border:0"><span>진행 상황 초기화</span><button class="btn small red" data-reset>처음부터 다시</button></div></div>`);
-  function renderSet() { const s = S().settings; screens.settings.querySelectorAll('.tog').forEach(b => { const v = s[b.dataset.t]; b.textContent = v ? '켜짐' : '꺼짐'; b.classList.toggle('off', !v); }); document.getElementById('vol').value = s.vol; const r = screens.settings.querySelector('[data-reset]'); r.textContent = '처음부터 다시'; r.dataset.arm = ''; }
+  function renderSet() { const s = S().settings; screens.settings.querySelectorAll('.dsel').forEach(b => b.classList.toggle('off', s.diff !== b.dataset.d)); screens.settings.querySelectorAll('.tog:not(.dsel)').forEach(b => { const v = s[b.dataset.t]; b.textContent = v ? '켜짐' : '꺼짐'; b.classList.toggle('off', !v); }); document.getElementById('vol').value = s.vol; const r = screens.settings.querySelector('[data-reset]'); r.textContent = '처음부터 다시'; r.dataset.arm = ''; }
   UI.settings = () => { renderSet(); UI.show('settings'); };
   on(screens.settings, '[data-b]', () => UI.menu());
-  on(screens.settings, '.tog', (e, b) => { const s = S().settings; s[b.dataset.t] = !s[b.dataset.t]; MP.Save.save(); MP.Audio.applySettings(); renderSet(); });
+  on(screens.settings, '.dsel', (e, b) => { const st = S().settings; st.diff = b.dataset.d; st.diffDone = true; MP.Save.save(); renderSet(); });
+  on(screens.settings, '.tog:not(.dsel)', (e, b) => { const s = S().settings; s[b.dataset.t] = !s[b.dataset.t]; MP.Save.save(); MP.Audio.applySettings(); renderSet(); });
   document.getElementById('vol').addEventListener('input', e => { S().settings.vol = +e.target.value; MP.Save.save(); MP.Audio.applySettings(); });
   on(screens.settings, '[data-fs]', () => { const d = document; if (d.fullscreenElement) d.exitFullscreen(); else MP.App.fullscreen(true); });
   on(screens.settings, '[data-reset]', (e, b) => { if (b.dataset.arm) { MP.Save.reset(); renderSet(); b.textContent = '초기화 완료!'; } else { b.dataset.arm = '1'; b.textContent = '정말요? 한 번 더 누르기'; } });
