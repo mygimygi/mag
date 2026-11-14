@@ -1,15 +1,15 @@
 // MAGNET POP - static game data (stages, monsters, upgrades, texts)
 (function () {
   const MP = window.MP = window.MP || {};
-  MP.VERSION = 19;               // shown on the title screen; also stamped on file URLs (index.html, sw.js)
+  MP.VERSION = 20;               // shown on the title screen; also stamped on file URLs (index.html, sw.js)
   MP.W = 1280; MP.H = 720; MP.GROUND = 625;
   MP.DT = 1 / 120;
 
   // ---- electromagnet upgrades: exactly two parts, exactly three levels each ----
   MP.UPG = {
     maxLevel: 3,
-    batt: { count: [1, 2, 3], pull: [1, 1.55, 2.2], cost: [0, 100, 200] },      // cost to reach level 2 / level 3
-    coil: { turns: [10, 20, 30], range: [230, 310, 400], field: [1, 1.3, 1.65], cost: [0, 100, 200] },
+    batt: { count: [1, 2, 3], pull: [1, 1.55, 2.2], cost: [0, 100, 100] },      // every upgrade costs 100 (any order)
+    coil: { turns: [10, 20, 30], range: [230, 310, 400], field: [1, 1.3, 1.65], cost: [0, 100, 100] },
   };
   MP.stats = function (b, c) {
     const U = MP.UPG, pull = U.batt.pull[b - 1] * U.coil.field[c - 1];
@@ -50,42 +50,43 @@
   const VAN = ph => ({ kind: 'vanish', phase: ph || 0 }), CRU = { kind: 'crumble' }, SPR = { kind: 'spring' };
   const T = { b: 'ball', r: 'robot', s: 'slime', g: 'bug', t: 'bat', G: 'golem', B: 'bigbot', w: 'wood', p: 'plastic', a: 'alu' };
   const W = list => list.map(w => [...w].map(c => T[c]));
-  // reward = total upgrade materials for the first clear of the stage (monster drops + clear bonus)
+  // reward = upgrade materials for the first clear (monster drops + clear bonus). Every three stages add up to 100 = one upgrade,
+  // so an upgrade becomes possible after stages 3, 6, 9 and 12 (4 upgrades = both parts at level 3).
   MP.STAGES = [null,
-    { name: '초원의 첫 만남', world: 1, reward: 10, bgm: 'A', tutorial: true,
+    { name: '초원의 첫 만남', world: 1, reward: 25, bgm: 'A', tutorial: true,
       plats: [P(448, 465, 384), P(160, 330, 192), P(928, 330, 192)],
       waves: W(['b', 'bb', 'bbb', 'bbb']) },
-    { name: '숲속의 철갑 로봇', world: 1, reward: 12, bgm: 'A',
+    { name: '숲속의 철갑 로봇', world: 1, reward: 30, bgm: 'A',
       plats: [P(64, 470, 288), P(928, 470, 288), P(448, 345, 384), P(160, 312, 192, VAN(0)), P(928, 312, 192, VAN(2.5))],
       waves: W(['rb', 'rrb', 'rbb', 'rrbb']) },
-    { name: '슬라임 언덕', world: 1, reward: 14, bgm: 'A',
+    { name: '슬라임 언덕', world: 1, reward: 45, upgradeAfter: true, bgm: 'A',
       plats: [P(0, 505, 192), P(224, 425, 192), P(448, 345, 384), P(864, 425, 192), P(1088, 505, 192)],
       waves: W(['ss', 'ssb', 'sssb', 'ssbb', 'sss']) },
-    { name: '낡은 기계 공장', world: 2, reward: 16, bgm: 'B',
+    { name: '낡은 기계 공장', world: 2, reward: 25, bgm: 'B',
       plats: [P(208, 480, 288), P(784, 480, 288), P(0, 340, 288), P(992, 340, 288), P(448, 340, 384, { belt: 95 })],
       waves: W(['br', 'brr', 'bbrr', 'brrs', 'rrb']) },
-    { name: '컨베이어 벨트', world: 2, reward: 18, bgm: 'B',
+    { name: '컨베이어 벨트', world: 2, reward: 30, bgm: 'B',
       plats: [P(64, 490, 384, { belt: 110 }), P(832, 490, 384, { belt: -110 }), P(112, 350, 288, mv('x', 300, 6)), P(880, 350, 288, mv('x', -300, 6)), P(544, 560, 192, SPR)],
       waves: W(['rs', 'rsg', 'rrss', 'rsgg', 'rrsb']) },
-    { name: '고철의 습격', world: 2, reward: 40, bgm: 'B', upgradeAfter: true,
+    { name: '고철의 습격', world: 2, reward: 45, upgradeAfter: true, bgm: 'B',
       plats: [P(96, 470, 288), P(896, 470, 288), P(448, 300, 384), P(544, 565, 192, SPR), P(160, 320, 192, CRU), P(928, 320, 192, CRU)],
       waves: W(['gg', 'grs', 'ggrb', 'grss', 'ggrrsb']) },
-    { name: '나침반 숲', world: 3, reward: 20, bgm: 'A',
+    { name: '나침반 숲', world: 3, reward: 25, bgm: 'A',
       plats: [P(0, 485, 288), P(992, 485, 288), P(496, 445, 288), P(208, 335, 288, VAN(0)), P(784, 335, 288, VAN(2.5))],
       waves: W(['tt', 'trg', 'ttrb', 'tgrr', 'ttgg', 'trb']) },
-    { name: '회전하는 시계탑', world: 3, reward: 25, bgm: 'A',
+    { name: '회전하는 시계탑', world: 3, reward: 30, bgm: 'A',
       plats: [P(96, 400, 192, mv('y', 115, 5)), P(992, 400, 192, mv('y', -115, 5)), P(448, 300, 384), P(496, 470, 288), P(304, 380, 192, VAN(1)), P(784, 380, 192, VAN(3.5))],
       waves: W(['tt', 'trr', 'ttrs', 'trrs', 'tttr', 'rrs']) },
-    { name: '컴퍼스 킹의 전령', world: 3, reward: 60, bgm: 'A', boss: 'king', upgradeAfter: true,
+    { name: '컴퍼스 킹의 전령', world: 3, reward: 45, upgradeAfter: true, bgm: 'A', boss: 'king',
       plats: [P(48, 465, 288), P(944, 465, 288), P(496, 330, 288, VAN(0))],
       waves: W(['gg', 'ttr', 'ggtr', 'ttrr']) },
-    { name: '전자석 실험실', world: 4, reward: 40, bgm: 'B',
+    { name: '전자석 실험실', world: 4, reward: 25, bgm: 'B',
       plats: [P(160, 485, 288), P(832, 485, 288), P(448, 350, 384, { belt: -100 }), P(64, 322, 192), P(1024, 322, 192), P(0, 570, 192, SPR)],
       waves: W(['rg', 'rgt', 'rrgt', 'sssg', 'rgtt', 'rrgg']) },
-    { name: '강력한 자기장', world: 4, reward: 50, bgm: 'B',
+    { name: '강력한 자기장', world: 4, reward: 30, bgm: 'B',
       plats: [P(0, 465, 384), P(896, 465, 384), P(448, 325, 384, mv('y', 95, 6)), P(160, 310, 192, CRU), P(928, 310, 192, CRU)],
       waves: W(['Gb', 'Gbt', 'Gbbt', 'GGr', 'Gbrt', 'GGbb']) },
-    { name: '금속 재료 시험장', world: 4, reward: 300, bgm: 'B', upgradeAfter: true, materials: true,
+    { name: '금속 재료 시험장', world: 4, reward: 45, upgradeAfter: true, bgm: 'B', materials: true,
       plats: [P(112, 475, 288), P(880, 475, 288), P(496, 335, 288), P(160, 320, 192, VAN(0)), P(928, 320, 192, VAN(2.5)), P(544, 565, 192, SPR)],
       waves: W(['bw', 'bbp', 'bba', 'bbwp', 'bbra', 'bbwpa', 'bbrw']) },
     { name: '철의 협곡', world: 5, reward: 0, bgm: 'A',

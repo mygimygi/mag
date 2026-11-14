@@ -108,7 +108,7 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   // --- clear panel: upgrade button instead of stage select ---
   const clearUi = await G(() => { MP.Save.data.mats = 0; MP.Save.data.batt = 1; MP.Save.data.coil = 1; MP.UI.clear({ stage: 2, score: 1000, mats: 12, first: true }); const p = document.querySelector('#clear .panel'); const btns = [...p.querySelectorAll('button')].map(b => b.textContent.trim()); p.querySelector('[data-a=up]').click(); const warn = p.querySelector('.warn'); return { btns, warn: !warn.hidden && warn.textContent, cur: MP.UI.cur }; });
   ok('result pop-up: [next stage] + [upgrade] only; short of materials -> notice', clearUi.btns.length === 2 && !clearUi.btns.some(t => t.includes('상점')) && clearUi.btns.some(t => t.includes('전자석 강화')) && !clearUi.btns.some(t => t.includes('스테이지 선택')) && /부족/.test(clearUi.warn || '') && clearUi.cur === 'clear', clearUi);
-  const forcedUp = await G(() => { const d = MP.Save.data; d.unlocked = 16; d.mats = 110; d.batt = 1; d.coil = 1; MP.UI.clear({ stage: 6, score: 1000, mats: 40, first: true }); const p = document.querySelector('#clear .panel'); const btns = [...p.querySelectorAll('button')].map(b => b.textContent.trim());
+  const forcedUp = await G(() => { const d = MP.Save.data; d.unlocked = 16; d.mats = 100; d.batt = 1; d.coil = 1; MP.UI.clear({ stage: 6, score: 1000, mats: 40, first: true }); const p = document.querySelector('#clear .panel'); const btns = [...p.querySelectorAll('button')].map(b => b.textContent.trim());
     p.querySelector('[data-a=up]').click(); const o = { btns, cur: MP.UI.cur }; const ok = document.querySelector('#upgrade .u-ok'); o.okLabel = ok.textContent; ok.click(); o.blocked = MP.UI.cur === 'upgrade' && MP.App.scene !== 'game';
     document.querySelector('.u-panel.batt .u-btn').click(); o.batt = d.batt; o.okReady = ok.classList.contains('green'); ok.click(); return o; });
   await p.waitForFunction(() => MP.App.scene === 'game' && MP.game.stage === 7 && !MP.UI.cur, null, { timeout: 15000 }).catch(() => {});
@@ -234,11 +234,15 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   await evp('pointerup', 21, pl2); await p.waitForTimeout(80);
   ok('second finger up releases movement', await G(() => !MP.Input.right && !MP.Input.left && !MP.Input.jump));
   // --- upgrades: exactly 3 levels each, order rule, MAX lock ---
-  const up = await G(() => { const S = MP.Save, d = S.data, log = []; d.mats = 99; log.push(S.canUpgrade('batt').reason); d.mats = 100; log.push(S.upgrade('batt'), d.batt, d.mats); d.mats = 500; log.push(S.canUpgrade('batt').reason); log.push(S.upgrade('coil'), S.upgrade('batt'), S.upgrade('coil'), d.batt, d.coil); log.push(S.canUpgrade('batt').reason, S.upgrade('batt'), S.upgrade('coil'), d.batt, d.coil, d.mats); return log; });
-  ok('upgrade needs enough materials; costs are deducted', up[0] === 'mats' && up[1] === true && up[2] === 2 && up[3] === 0, up.slice(0, 4));
-  ok('3rd level needs the other part at level 2 first', up[4] === 'balance');
-  ok('both parts reach level 3 (3 batteries / 30 turns)', up[8] === 3 && up[9] === 3);
-  ok('no upgrade beyond level 3 (MAX)', up[10] === 'max' && up[11] === false && up[12] === false && up[13] === 3 && up[14] === 3 && up[15] === 0, up.slice(10));
+  const up = await G(() => { const S = MP.Save, d = S.data, o = {}; d.batt = 1; d.coil = 1; d.mats = 99; o.short = S.canUpgrade('batt').reason; d.mats = 100; o.first = [S.upgrade('batt'), d.batt, d.mats];
+    d.mats = 100; o.battTo3 = [S.upgrade('batt'), d.batt, d.coil, d.mats];                     // one part straight to level 3, the other still at level 1
+    d.mats = 1000; o.coil = [S.upgrade('coil'), S.upgrade('coil'), d.coil]; o.max = [S.canUpgrade('batt').reason, S.canUpgrade('coil').reason, S.upgrade('batt'), S.upgrade('coil'), d.batt, d.coil, d.mats]; o.costs = MP.UPG.batt.cost.concat(MP.UPG.coil.cost); return o; });
+  ok('upgrade needs enough materials; every upgrade costs 100 and is deducted', up.short === 'mats' && up.first.join() === 'true,2,0' && up.costs.join() === '0,100,100,0,100,100', up);
+  ok('any order: one part can go to level 3 while the other is still at level 1', up.battTo3.join() === 'true,3,1,0', up.battTo3);
+  ok('both parts reach level 3 (3 batteries / 30 turns)', up.coil.join() === 'true,true,3');
+  ok('no upgrade beyond level 3 (MAX)', up.max.join() === 'max,max,false,false,3,3,800', up.max);
+  const sched = await G(() => { let cum = 0, out = []; for (let n = 1; n <= 16; n++) { const was = Math.floor(cum / 100); cum += MP.STAGES[n].total; if (Math.floor(cum / 100) > was) out.push(n); } return { at: out, total: cum, flags: MP.STAGES.filter(x => x && x.upgradeAfter).map(x => x.n) }; });
+  ok('materials allow exactly one upgrade after stages 3, 6, 9 and 12 (400 in total = 4 upgrades)', sched.at.join() === '3,6,9,12' && sched.total === 400 && sched.flags.join() === '3,6,9,12', sched);
   await G(() => MP.UI.upgrade('stages')); await p.waitForTimeout(200);
   ok('upgrade screen shows MAX and no buy buttons', await G(() => document.querySelectorAll('#upgrade .u-btn.max').length === 2 && document.querySelectorAll('#upgrade .u-row.cur').length === 2 && document.querySelectorAll('#upgrade .u-cell b.top').length === 3));
   await p.click('.u-panel.batt .u-btn', { force: true }); await p.waitForTimeout(100);

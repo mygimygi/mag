@@ -102,7 +102,7 @@
       pn.querySelectorAll('canvas[data-coil]').forEach(cv => coilIcon(cv, +cv.dataset.coil));
       const b = pn.querySelector('.u-btn'); b.className = 'u-btn ' + (c.reason === 'max' ? 'max' : c.ok ? 'ok' : 'no');
       b.innerHTML = c.reason === 'max' ? '✓ MAX' : `강화 <span class="ico bolt"></span>${c.cost}`;
-      b.dataset.msg = c.reason === 'max' ? '이미 최대 단계예요!' : c.reason === 'balance' ? `먼저 ${isB ? '에나멜선' : '건전지'}을 2단계로 강화해요!` : c.reason === 'mats' ? `재료가 부족해요! (${c.cost - d.mats}개 더 필요)` : '';
+      b.dataset.msg = c.reason === 'max' ? '이미 최대 단계예요!' : c.reason === 'mats' ? `재료가 부족해요! (${c.cost - d.mats}개 더 필요)` : '';
     }
     { const ok = sc.querySelector('.u-ok'), forced = upFrom === 'clear' && lastClear; ok.textContent = forced ? '다음 스테이지 ▶' : '확인 ▶'; ok.classList.toggle('gray', !!(forced && canAny())); ok.classList.toggle('green', !!(forced && !canAny())); }
     const tr = MP.Render.TIER[d.batt + d.coil - 2]; sc.querySelector('.u-rays').style.setProperty('--ray', 'rgba(' + tr.cone + ',.9)');

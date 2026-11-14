@@ -28,10 +28,9 @@
     },
     /** can `part` ('batt'|'coil') be upgraded? returns {ok, reason, cost, next} */
     canUpgrade(part) {
-      const d = this.data, lv = d[part], other = part === 'batt' ? d.coil : d.batt;
+      const d = this.data, lv = d[part];
       if (lv >= MP.UPG.maxLevel) return { ok: false, reason: 'max' };
       const cost = MP.UPG[part].cost[lv];
-      if (lv === 2 && other < 2) return { ok: false, reason: 'balance', cost, next: lv + 1 };
       if (d.mats < cost) return { ok: false, reason: 'mats', cost, next: lv + 1 };
       return { ok: true, cost, next: lv + 1 };
     },
