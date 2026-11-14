@@ -49,7 +49,7 @@
   let cv, ctx, rs = 1;
   const R = MP.Render = {
     init(canvas) { cv = canvas; ctx = cv.getContext('2d'); },
-    setScale(s) { rs = s; cv.width = Math.round(W * rs); cv.height = Math.round(H * rs); },
+    setScale(s) { if (s === rs && cv.width === Math.round(W * rs)) return; rs = s; cv.width = Math.round(W * rs); cv.height = Math.round(H * rs); layers.clear(); },
     get ctx() { return ctx; },
   };
   // draw one frame of a sprite sheet. (x,y) = sprite origin. o: flip, s (scale), rot (radians), py (pivot offset above origin), a (alpha)
@@ -91,10 +91,28 @@
     for (let i = 0; i < 14; i++) x.drawImage(src, (i % 3) * 96 * k, 0, 96 * k, P.groundH * k, i * 96 * k, 0, 96 * k, P.groundH * k);
     return pcache[key] = c;
   }
+  // ---- pre-rendered static layers ----
+  // Scaling a full-screen picture every frame is by far the most expensive drawing on phones. The background, ground and
+  // platforms that never move are drawn once, at the canvas's exact pixel size, and then copied 1:1 each frame.
+  const LM = 8;                                  // margin (game px) so screen shake never shows an empty edge
+  const layers = new Map();
+  function layer(key, paint) {
+    const k = key + '@' + rs; let L = layers.get(k);
+    if (!L) {
+      L = document.createElement('canvas'); L.width = Math.round((W + LM * 2) * rs); L.height = Math.round((H + LM * 2) * rs);
+      const x = L.getContext('2d'); x.imageSmoothingQuality = 'high'; x.setTransform(rs, 0, 0, rs, LM * rs, LM * rs); paint(x);
+      if (layers.size > 4) layers.delete(layers.keys().next().value);            // keep a few (menu + current stage + backdrops)
+      layers.set(k, L);
+    }
+    return L;
+  }
+  function blit(c, L, ox, oy) { c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(L, Math.round((ox - LM) * rs), Math.round((oy - LM) * rs)); c.setTransform(rs, 0, 0, rs, 0, 0); }
+  const isStatic = p => p.ground || (!p.move && (p.kind === 'solid' || !p.kind));
+  R.layerCount = () => layers.size;
   const KIND_IMG = { vanish: 'cloud', spring: 'spring', conveyor: 'conveyor', crumble: 'wood' };
   function drawPlats(c, plats, theme, time) {
     for (const p of plats) {
-      if (p.ground) { c.drawImage(groundImg(theme), -32, G - 11, 1344, SPR.plat.groundH); continue; }
+      if (isStatic(p)) continue;                                     // already in the pre-rendered layer
       if (p.alpha <= 0.01) continue;
       const img = platImg(KIND_IMG[p.kind] || theme, p.w); let x = p.x, y = p.y - 11 + p.oy;
       c.save(); c.globalAlpha = p.alpha;
@@ -243,9 +261,11 @@
     text(c, '흡수 ' + p.held.length + '/' + MP.HOLD_MAX, W - 30, 101, 20, p.held.length >= MP.HOLD_MAX ? '#ffe14d' : '#fff', '#3b2438', 5, 'right');
   }
   R.draw = function (g) {
-    const c = ctx; c.setTransform(rs, 0, 0, rs, 0, 0); c.imageSmoothingQuality = MP.coarse ? 'medium' : 'high';
+    const c = ctx; c.setTransform(rs, 0, 0, rs, 0, 0); c.imageSmoothingQuality = MP.coarse ? 'low' : 'high';     // phones: cheaper scaling, looks the same at these ratios
     const sx = g.shake > 0 ? (Math.random() - .5) * 10 * Math.min(1, g.shake * 5) : 0, sy = g.shake > 0 ? (Math.random() - .5) * 8 * Math.min(1, g.shake * 5) : 0;
-    if (A.ok('bg' + g.stage)) c.drawImage(IMG['bg' + g.stage], 0, 0, W, H); else { c.fillStyle = '#8fd0f5'; c.fillRect(0, 0, W, H); }
+    if (A.ok('bg' + g.stage)) {
+      blit(c, layer('stage' + g.stage, x => { x.drawImage(IMG['bg' + g.stage], -LM, -LM, W + LM * 2, H + LM * 2); x.drawImage(IMG['bg' + g.stage], 0, 0, W, H); for (const p of g.world.plats.filter(isStatic)) { if (p.ground) x.drawImage(groundImg(g.theme), -32, G - 11, 1344, SPR.plat.groundH); else x.drawImage(platImg(g.theme, p.w), p.x, p.y - 11, p.w, SPR.plat.h); } }), sx, sy);
+    } else { c.fillStyle = '#8fd0f5'; c.fillRect(0, 0, W, H); }
     c.save(); c.translate(sx, sy);
     if (g.boss && g.boss.kind === 'titan') drawBoss(c, g.boss, g);
     drawPlats(c, g.world.plats, g.theme, g.time);
@@ -306,9 +326,8 @@
 
   // ---- title screen backdrop (canvas part; buttons are DOM) ----
   R.drawMenu = function (t, sv) {
-    const c = ctx; c.setTransform(rs, 0, 0, rs, 0, 0); c.imageSmoothingQuality = MP.coarse ? 'medium' : 'high';
-    c.drawImage(IMG.bg1, 0, 0, W, H); c.drawImage(groundImg('meadow'), -32, G - 11, 1344, SPR.plat.groundH);
-    c.drawImage(platImg('meadow', 288), 930, 440 - 11, 288, SPR.plat.h);
+    const c = ctx; c.setTransform(rs, 0, 0, rs, 0, 0); c.imageSmoothingQuality = MP.coarse ? 'low' : 'high';     // phones: cheaper scaling, looks the same at these ratios
+    blit(c, layer('menu', x => { x.drawImage(IMG.bg1, -LM, -LM, W + LM * 2, H + LM * 2); x.drawImage(IMG.bg1, 0, 0, W, H); x.drawImage(groundImg('meadow'), -32, G - 11, 1344, SPR.plat.groundH); x.drawImage(platImg('meadow', 288), 930, 440 - 11, 288, SPR.plat.h); }), 0, 0);
     const HM = SPR.hero.anims, fr = HM.magnet[0] + Math.floor(t * 16) % HM.magnet[1];
     // hero with the magnet ON pulling an iron ball
     const hx = 120, hy = G + 3, nzx = hx + 118 * 1.25, nzy = hy - 42 * 1.25;
@@ -328,7 +347,11 @@
     text(c, 'v' + MP.VERSION, W - 20, 22, 22, '#fff', '#173d96', 5, 'right');
   };
   // generic bright backdrop for sub screens
-  R.drawBackdrop = function (n) { const c = ctx; c.setTransform(rs, 0, 0, rs, 0, 0); n = n || 1; if (!A.ok('bg' + n)) { if (!pending['bg' + n]) A.ensure(['bg' + n]).then(() => A.useBg(n)); c.drawImage(IMG.bg1, 0, 0, W, H); } else c.drawImage(IMG['bg' + n], 0, 0, W, H); c.drawImage(groundImg(MP.THEME[MP.STAGES[n || 1].world]), -32, G - 11, 1344, SPR.plat.groundH); c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(0, 0, W, H); };
+  R.drawBackdrop = function (n) {
+    const c = ctx; c.setTransform(rs, 0, 0, rs, 0, 0); n = n || 1;
+    if (!A.ok('bg' + n)) { if (!pending['bg' + n]) A.ensure(['bg' + n]).then(() => A.useBg(n)); n = 1; }
+    blit(c, layer('back' + n, x => { x.drawImage(IMG['bg' + n], -LM, -LM, W + LM * 2, H + LM * 2); x.drawImage(IMG['bg' + n], 0, 0, W, H); x.drawImage(groundImg(MP.THEME[MP.STAGES[n].world]), -32, G - 11, 1344, SPR.plat.groundH); x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(-LM, -LM, W + LM * 2, H + LM * 2); }), 0, 0);
+  };
 
   // ---- science classroom illustrations (drawn with the real game sprites) ----
   R.sciencePic = function (canvas, kind, t) {
