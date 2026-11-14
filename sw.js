@@ -1,6 +1,6 @@
 // MAGNET POP offline support (used when the game is served over http/https).
 // Network first: the newest files are always used when online; the cache is only the fallback when there is no connection.
-const CACHE = 'magnetpop-v17';
+const CACHE = 'magnetpop-v18';
 const FILES = ['./', 'index.html', 'css/style.css', 'manifest.webmanifest', 'assets/fonts/Jua-Regular.woff2',
   'js/sprites.js', 'js/heroart.js', 'js/config.js', 'js/save.js', 'js/input.js', 'js/audio.js', 'js/game.js', 'js/bosses.js', 'js/render.js', 'js/ui.js', 'js/main.js',
   'assets/img/icon.png', 'assets/img/hero.png', 'assets/img/weapon.png', 'assets/img/king.png', 'assets/img/titan.png', 'assets/img/parts.png', 'assets/img/fx.png']

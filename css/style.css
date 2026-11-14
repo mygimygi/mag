@@ -229,7 +229,7 @@ body:not(.touch) #touch { display: none; }
 .u-center canvas { width: 420px; height: 303px; position: relative; }
 .u-rays { position: absolute; inset: -40px; border-radius: 50%; background: repeating-conic-gradient(rgba(255, 255, 255, .75) 0 9deg, rgba(255, 255, 255, 0) 9deg 18deg); -webkit-mask: radial-gradient(circle, #000 20%, transparent 68%); mask: radial-gradient(circle, #000 20%, transparent 68%); animation: spin 24s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.u-stats { position: absolute; left: 230px; right: 290px; bottom: 22px; height: 132px; border-radius: 28px; background: rgba(255, 252, 240, .97); border: 6px solid #2a66d8; box-shadow: 0 8px 0 rgba(15, 47, 143, .5); }
+.u-stats { position: absolute; left: 200px; right: 300px; bottom: 22px; height: 132px; border-radius: 28px; background: rgba(255, 252, 240, .97); border: 6px solid #2a66d8; box-shadow: 0 8px 0 rgba(15, 47, 143, .5); }
 .u-stl { position: absolute; left: 50%; top: -30px; transform: translateX(-50%); font-size: 34px; color: #fff; padding: 2px 44px; border-radius: 999px; background: linear-gradient(#5aa8ff, #2a66d8); border: 4px solid #173d96; text-shadow: 0 2px 0 #173d96; white-space: nowrap; }
 .u-cells { display: grid; grid-template-columns: repeat(3, 1fr); height: 100%; align-items: center; padding-top: 14px; }
 .u-cell { display: flex; align-items: center; justify-content: center; gap: 14px; border-left: 4px solid #f0b04a; height: 78px; }
@@ -241,7 +241,7 @@ body:not(.touch) #touch { display: none; }
 .u-ic.range { background: radial-gradient(circle, #fff 0 18%, #6fc4ff 19% 42%, #fff 43% 50%, #a8dcff 51% 68%, rgba(168, 220, 255, 0) 70%); }
 .u-ic.pull { width: 44px; height: 42px; border: 14px solid #e8303f; border-right-color: #2a66d8; border-top: 0; border-radius: 0 0 26px 26px; transform: rotate(-135deg); box-shadow: 0 0 0 3px #3b2438; margin: 0 8px; }
 .u-ic.shot { background: radial-gradient(circle, #fff 0 22%, #ffe45a 23% 46%, #ff8a1e 47% 62%, rgba(255, 138, 30, 0) 64%); }
-.u-ok { position: absolute; right: 30px; bottom: 34px; font-size: 44px; padding: 16px 44px; }
+.u-ok { position: absolute; right: 24px; bottom: 34px; font-size: 32px; padding: 16px 26px; }
 .u-toast { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); z-index: 3; font-size: 30px; color: #fff; background: rgba(27, 42, 92, .94); border: 4px solid #fff; border-radius: 999px; padding: 8px 34px; white-space: nowrap; }
 /* ---- dress-up ---- */
 #dress { justify-content: flex-start; }

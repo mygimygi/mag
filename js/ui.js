@@ -87,13 +87,18 @@
       b.innerHTML = c.reason === 'max' ? '✓ MAX' : `강화 <span class="ico bolt"></span>${c.cost}`;
       b.dataset.msg = c.reason === 'max' ? '이미 최대 단계예요!' : c.reason === 'balance' ? `먼저 ${isB ? '에나멜선' : '건전지'}을 2단계로 강화해요!` : c.reason === 'mats' ? `재료가 부족해요! (${c.cost - d.mats}개 더 필요)` : '';
     }
+    { const ok = sc.querySelector('.u-ok'), forced = upFrom === 'clear' && lastClear; ok.textContent = forced ? '다음 스테이지 ▶' : '확인 ▶'; ok.classList.toggle('gray', !!(forced && canAny())); ok.classList.toggle('green', !!(forced && !canAny())); }
     const tr = MP.Render.TIER[d.batt + d.coil - 2]; sc.querySelector('.u-rays').style.setProperty('--ray', 'rgba(' + tr.cone + ',.9)');
     const cv = sc.querySelector('.u-center canvas'); MP.Render.drawWeapon(cv, d.batt, d.coil, true); cv.classList.remove('flashU'); if (flash) { void cv.offsetWidth; cv.classList.add('flashU'); }
     const cell = (ic, name, v, max) => `<div class="u-cell"><span class="u-ic ${ic}"></span><div><span>${name}</span><b class="${v >= max ? 'top' : ''}">${v >= max ? '최대!' : Math.round(v / max * 100) + '%'}</b></div></div>`;
     sc.querySelector('.u-cells').innerHTML = cell('range', '자기장 범위', cur.range, mx.range) + cell('pull', '흡수 성능', cur.pull, mx.pull) + cell('shot', '발사 공격력', cur.shot, mx.shot);
   }
   on(screens.upgrade, '.u-btn', (e, b) => { if (b.dataset.msg) { sfx('nope'); return toast(b.dataset.msg); } if (MP.Save.upgrade(b.dataset.buy)) { sfx('upgrade'); renderUp(true); const pw = screens.upgrade.querySelector('.u-pow'), d2 = S(); pw.style.color = MP.Render.TIER[d2.batt + d2.coil - 2].name; pw.hidden = true; void pw.offsetWidth; pw.hidden = false; setTimeout(() => { pw.hidden = true; }, 1500); toast(b.dataset.buy === 'batt' ? '건전지 강화 성공!' : '에나멜선 강화 성공!'); } });
-  on(screens.upgrade, '.u-ok', () => { if (typeof upFrom === 'number') MP.App.startStage(upFrom); else if (upFrom === 'clear' && lastClear) UI.clear(lastClear); else UI.stages(); });
+  const canAny = () => MP.Save.canUpgrade('batt').ok || MP.Save.canUpgrade('coil').ok;
+  on(screens.upgrade, '.u-ok', () => {
+    if (upFrom === 'clear' && lastClear) { if (canAny()) { sfx('nope'); return toast('먼저 전자석을 강화해요!'); } return UI.tryStart(lastClear.stage + 1); }
+    if (typeof upFrom === 'number') MP.App.startStage(upFrom); else UI.stages();
+  });
 
   // ---------- character dress-up ----------
   const Art = window.MPArt;
@@ -173,7 +178,8 @@
       ${st.upgradeAfter && r.first ? `<div class="chance">업그레이드 기회! 전자석을 강화할 수 있어요</div>` : ''}${r.stage === 15 ? `<div class="chance">최종 보스 스테이지가 열렸어요!</div>` : ''}
       ${items.length ? `<div class="bag">다음 스테이지 아이템 ${items.map(k => `<span class="ico ${MP.ITEMS[k].ico}"></span>`).join('')}</div>` : ''}
       <div class="tip"><b>과학 한 줄</b> ${MP.TIPS[r.stage]}</div><div class="warn" hidden></div>
-      <div class="row"><button class="btn green" data-a="next">다음 스테이지 ▶</button><button class="btn ${canUp ? 'gold' : 'gray'}" style="cursor:pointer" data-a="up">전자석 강화</button></div>`;
+      ${canUp ? `<div class="chance">재료가 모였어요! 전자석을 강화하고 다음 스테이지로 가요</div><div class="row"><button class="btn gold" data-a="up">전자석 강화 ▶</button></div>`
+        : `<div class="row"><button class="btn green" data-a="next">다음 스테이지 ▶</button><button class="btn gray" style="cursor:pointer" data-a="up">전자석 강화</button></div>`}`;
     on(p, '[data-a]', (e, b) => {
       const n = r.stage + 1, a = b.dataset.a, w = p.querySelector('.warn');
       if (a === 'next') return UI.tryStart(n);

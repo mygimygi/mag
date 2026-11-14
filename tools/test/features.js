@@ -108,6 +108,12 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   // --- clear panel: upgrade button instead of stage select ---
   const clearUi = await G(() => { MP.Save.data.mats = 0; MP.Save.data.batt = 1; MP.Save.data.coil = 1; MP.UI.clear({ stage: 2, score: 1000, mats: 12, first: true }); const p = document.querySelector('#clear .panel'); const btns = [...p.querySelectorAll('button')].map(b => b.textContent.trim()); p.querySelector('[data-a=up]').click(); const warn = p.querySelector('.warn'); return { btns, warn: !warn.hidden && warn.textContent, cur: MP.UI.cur }; });
   ok('result pop-up: [next stage] + [upgrade] only; short of materials -> notice', clearUi.btns.length === 2 && !clearUi.btns.some(t => t.includes('상점')) && clearUi.btns.some(t => t.includes('전자석 강화')) && !clearUi.btns.some(t => t.includes('스테이지 선택')) && /부족/.test(clearUi.warn || '') && clearUi.cur === 'clear', clearUi);
+  const forcedUp = await G(() => { const d = MP.Save.data; d.unlocked = 16; d.mats = 110; d.batt = 1; d.coil = 1; MP.UI.clear({ stage: 6, score: 1000, mats: 40, first: true }); const p = document.querySelector('#clear .panel'); const btns = [...p.querySelectorAll('button')].map(b => b.textContent.trim());
+    p.querySelector('[data-a=up]').click(); const o = { btns, cur: MP.UI.cur }; const ok = document.querySelector('#upgrade .u-ok'); o.okLabel = ok.textContent; ok.click(); o.blocked = MP.UI.cur === 'upgrade' && MP.App.scene !== 'game';
+    document.querySelector('.u-panel.batt .u-btn').click(); o.batt = d.batt; o.okReady = ok.classList.contains('green'); ok.click(); return o; });
+  await p.waitForFunction(() => MP.App.scene === 'game' && MP.game.stage === 7 && !MP.UI.cur, null, { timeout: 15000 }).catch(() => {});
+  forcedUp.next = await G(() => ({ stage: MP.game.stage, scene: MP.App.scene, cur: MP.UI.cur }));
+  ok('upgrade available: result pop-up shows only [upgrade]; next stage is locked until the materials are spent, then it starts the next stage', forcedUp.btns.length === 1 && forcedUp.btns[0].includes('전자석 강화') && forcedUp.cur === 'upgrade' && forcedUp.okLabel.includes('다음 스테이지') && forcedUp.blocked && forcedUp.batt === 2 && forcedUp.okReady && forcedUp.next.stage === 7 && forcedUp.next.scene === 'game', forcedUp);
   ok('clear panel: upgrade button opens the upgrade screen once materials are enough', await G(() => { MP.Save.data.mats = 100; MP.UI.clear({ stage: 2, score: 1000, mats: 12, first: true }); document.querySelector('#clear [data-a=up]').click(); const ok2 = MP.UI.cur === 'upgrade'; MP.Save.data.mats = 0; return ok2; }));
   await G(() => MP.App.startStage(1)); await p.waitForTimeout(300);
   // --- jump is 10% stronger than the original take-off speed ---
@@ -200,10 +206,12 @@ const results = []; const ok = (name, cond, info) => { results.push({ name, pass
   await evp('pointermove', 21, pl2); await p.waitForTimeout(80);
   ok('sliding the thumb across the move pad switches direction without lifting', await G(() => MP.Input.left && !MP.Input.right));
   // push the thumb up on the move pad = jump (and again after easing back down)
+  const pre = await G(() => ({ state: MP.game.state, ground: MP.game.player.onGround, hurt: +MP.game.player.hurtT.toFixed(2), paused: MP.App.paused, cur: MP.UI.cur, stage: MP.game.stage }));
+  await p.waitForFunction(() => MP.game.state === 'play' && MP.game.player.onGround && MP.game.player.hurtT <= 0, null, { timeout: 5000 }).catch(() => {});
   await G(() => { MP.game.player.inv = 30; MP.Input.jumpEdge = false; }); const upPt = { x: pl2.x, y: pl2.y - padBox.height * 0.6 };
   await evp('pointermove', 21, upPt); await p.waitForTimeout(140);
   const padJump = await G(() => ({ jump: MP.Input.jump, left: MP.Input.left, air: !MP.game.player.onGround, hi: document.querySelector('[data-pad]').classList.contains('pj') }));
-  ok('pushing the thumb up on the move pad jumps while still moving', padJump.jump && padJump.left && padJump.air && padJump.hi, padJump);
+  ok('pushing the thumb up on the move pad jumps while still moving', padJump.jump && padJump.left && padJump.air && padJump.hi, Object.assign(padJump, { before: pre }));
   const hops = await G(() => { MP.App.paused = true; const g = MP.game, pl = g.player; let n = 0, prev = pl.vy; for (let i = 0; i < 120 * 3; i++) { pl.inv = 30; g.update(MP.DT); if (pl.vy < -500 && prev >= 0) n++; prev = pl.vy; } MP.App.paused = false; return n; });
   ok('holding the joystick up does not auto-repeat the jump', hops === 0, hops);
   // joystick down: never jumps on the ground; drops through a platform
